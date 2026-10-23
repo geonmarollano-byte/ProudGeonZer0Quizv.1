@@ -12,7 +12,7 @@ const ANSWERS = {
 async function goToHome(page) {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await page.getByRole("button", { name: "CONTINUE" }).click();
+  // Fresh player: the game opens on the player card screen first.
   await expect(page.locator("#welcome-screen")).toBeVisible();
   await page.getByRole("button", { name: /PROCEED/ }).click();
   await expect(page.locator("#home-screen")).toBeVisible();
@@ -161,7 +161,7 @@ test("edit player card returns to welcome and then home again", async ({
 test("start quiz opens a dialog and returns to home", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await page.getByRole("button", { name: "CONTINUE" }).click();
+  await expect(page.locator("#welcome-screen")).toBeVisible();
   await page.getByLabel(/What should we call you/).fill("Geon");
   await page.getByRole("button", { name: /PROCEED/ }).click();
   await page.getByRole("button", { name: /START QUIZ/ }).click();
@@ -173,13 +173,25 @@ test("start quiz opens a dialog and returns to home", async ({ page }) => {
   await expect(page.locator("#home-screen")).toBeVisible();
 });
 
+test("dialog padding does not dismiss it but backdrop does", async ({
+  page,
+}) => {
+  await goToHome(page);
+  await page.getByRole("button", { name: /START QUIZ/ }).click();
+  const modal = page.getByRole("dialog");
+  const box = await modal.boundingBox();
+  await page.mouse.click(box.x + 10, box.y + 10);
+  await expect(modal).toBeVisible();
+  await page.mouse.click(5, 5);
+  await expect(modal).toBeHidden();
+});
+
 test("home progress is remembered after a reload", async ({ page }) => {
   await goToHome(page);
   await solveCurrentWarmup(page);
   await expect(page.locator("#xp-value")).toHaveText("10");
   await page.reload();
-  await page.getByRole("button", { name: "CONTINUE" }).click();
-  await page.getByRole("button", { name: /PROCEED/ }).click();
+  // A returning player with a finished profile lands on the quest hub.
   await expect(page.locator("#home-screen")).toBeVisible();
   await expect(page.locator("#xp-value")).toHaveText("10");
   await expect(page.locator("#coin-count")).toHaveText("5");
@@ -193,8 +205,7 @@ test("sound toggle updates state and survives a reload", async ({ page }) => {
     page.getByRole("button", { name: "Turn sound on" }),
   ).toHaveAttribute("aria-pressed", "false");
   await page.reload();
-  await page.getByRole("button", { name: "CONTINUE" }).click();
-  await page.getByRole("button", { name: /PROCEED/ }).click();
+  await expect(page.locator("#home-screen")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Turn sound on" }),
   ).toHaveAttribute("aria-pressed", "false");
