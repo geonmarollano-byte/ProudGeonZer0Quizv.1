@@ -1,70 +1,16 @@
 "use strict";
 
-/* ================= LOADING SCREEN ================= */
-const percentage = document.querySelector("#percentage");
-const progress = document.querySelector("#progress");
-const fill = document.querySelector("#progress-fill");
-const announcement = document.querySelector("#announcement");
+/* ================= SCREEN ELEMENTS ================= */
 const dialog = document.querySelector("#coming-soon");
-const loadingScreen = document.querySelector("#loading-screen");
 const welcomeScreen = document.querySelector("#welcome-screen");
 const homeScreen = document.querySelector("#home-screen");
 const fullscreenButtons = document.querySelectorAll(".fullscreen");
 const fullscreenNotes = [
-  document.querySelector("#fullscreen-note"),
   document.querySelector("#welcome-fullscreen-note"),
   document.querySelector("#home-fullscreen-note"),
 ];
 
-// This is an intentional intro, not simulated network activity. All assets are local.
-// Start after local assets finish, then use elapsed time (not queued timers).
-let introTimer;
-function startIntro() {
-  window.clearTimeout(introTimer);
-  document.querySelector("#loading-panel").hidden = false;
-  document.querySelector("#ready-panel").hidden = true;
-  percentage.textContent = "1";
-  progress.setAttribute("aria-valuenow", "1");
-  fill.style.width = "1%";
-  announcement.textContent = "";
-  const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ? 500
-    : 3600;
-  const started = performance.now();
-  let lastValue = 1;
-  function frame(now) {
-    const value = Math.min(
-      100,
-      1 + Math.floor(((now - started) / duration) * 99),
-    );
-    if (value !== lastValue) {
-      percentage.textContent = String(value);
-      progress.setAttribute("aria-valuenow", String(value));
-      fill.style.width = `${value}%`;
-      lastValue = value;
-    }
-    if (value < 100) {
-      introTimer = window.setTimeout(() => frame(performance.now()), 32);
-    } else {
-      // Let 100% paint once before replacing the progress UI.
-      introTimer = window.setTimeout(() => {
-        document.querySelector("#loading-panel").hidden = true;
-        document.querySelector("#ready-panel").hidden = false;
-        announcement.textContent = "Loading complete. Continue is ready.";
-      }, 180);
-    }
-  }
-  introTimer = window.setTimeout(() => frame(performance.now()), 32);
-}
-if (document.readyState === "complete") startIntro();
-else window.addEventListener("load", startIntro, { once: true });
-
-document.querySelector("#replay").addEventListener("click", () => {
-  startIntro();
-  document.querySelector("#fullscreen").focus({ preventScroll: true });
-});
-
-/* ================= FULLSCREEN (BOTH SCREENS) ================= */
+/* ================= FULLSCREEN ================= */
 function setFullscreenNotes(message) {
   fullscreenNotes.forEach((note) => {
     if (note) note.textContent = message;
@@ -190,6 +136,7 @@ const defaultState = () => ({
   sound: true,
   solved: [],
   dailyRewardClaimed: false,
+  profileComplete: false,
 });
 
 function loadState() {
@@ -595,12 +542,11 @@ el.soundToggle.addEventListener("click", () => {
 
 /* ================= SCREEN NAVIGATION ================= */
 const screens = {
-  loading: loadingScreen,
   welcome: welcomeScreen,
   home: homeScreen,
 };
 
-function showScreen(name) {
+function showScreen(name, { celebrate: shouldCelebrate = true } = {}) {
   Object.entries(screens).forEach(([key, node]) => {
     node.hidden = key !== name;
   });
@@ -609,40 +555,31 @@ function showScreen(name) {
     el.motivation.textContent =
       MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)];
     el.welcomeAnnouncement.textContent = `Welcome, ${displayName()}! Set up your player card, then proceed to your quest hub.`;
-    celebrate("welcome-confetti");
-    soundSuccess();
+    if (shouldCelebrate) {
+      celebrate("welcome-confetti");
+      soundSuccess();
+    }
     el.welcomeTitle.focus({ preventScroll: true });
   }
   if (name === "home") {
     el.homeScroll.scrollTop = 0;
     el.homeAnnouncement.textContent = `Welcome back, ${displayName()}! Your quest hub is ready.`;
-    celebrate("home-confetti");
-    soundClick();
+    if (shouldCelebrate) {
+      celebrate("home-confetti");
+      soundClick();
+    }
     el.homeTitle.focus({ preventScroll: true });
-  }
-  if (name === "loading") {
-    // The intro already finished once, so return straight to the ready panel.
-    document.querySelector("#loading-panel").hidden = true;
-    document.querySelector("#ready-panel").hidden = false;
-    document.querySelector("#continue").focus({ preventScroll: true });
   }
 }
 
-document.querySelector("#continue").addEventListener("click", () => {
-  renderPlayer();
-  showScreen("welcome");
-});
-document.querySelector("#welcome-back").addEventListener("click", () => {
-  soundClick();
-  showScreen("loading");
-});
 document.querySelector("#home-back").addEventListener("click", () => {
   soundClick();
   showScreen("welcome");
 });
 
-/* -------- Welcome → Home (player card is set, enter the quest hub) -------- */
+/* -------- Player card → Home (profile is set, enter the quest hub) -------- */
 document.querySelector("#proceed").addEventListener("click", () => {
+  player.profileComplete = true;
   saveState();
   renderPlayer();
   showScreen("home");
@@ -679,12 +616,17 @@ dialog.addEventListener("click", (event) => {
   if (event.target === dialog && outside) dialog.close();
 });
 
-/* -------- First paint of the welcome + home screens (behind loading) -------- */
+/* -------- First paint of the player card + quest hub -------- */
 el.nameInput.value = player.name;
 factIndex = Math.floor(Math.random() * FUN_FACTS.length);
 renderFact();
 renderWarmup();
 renderPlayer();
+
+/* -------- Launch: returning players land on their hub, new players on the card -------- */
+const hasSavedProfile =
+  player.profileComplete === true || player.xp > 0 || player.solved.length > 0;
+showScreen(hasSavedProfile ? "home" : "welcome", { celebrate: false });
 
 // Cache the small, dependency-free app for later offline visits.
 if ("serviceWorker" in navigator && window.isSecureContext) {

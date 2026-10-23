@@ -3,9 +3,9 @@ const { test, expect } = require("@playwright/test");
 async function goToWelcome(page) {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await page.getByRole("button", { name: "CONTINUE" }).click();
+  // A fresh browser profile opens straight on the player card screen.
   await expect(page.locator("#welcome-screen")).toBeVisible();
-  await expect(page.locator("#loading-screen")).toBeHidden();
+  await expect(page.locator("#home-screen")).toBeHidden();
 }
 
 test("welcome screen is the player card setup only, with proceed at the bottom", async ({
@@ -27,6 +27,13 @@ test("welcome screen is the player card setup only, with proceed at the bottom",
   await expect(
     page.getByRole("radio", { name: /Brave Challenger/ }),
   ).toBeVisible();
+
+  // The removed intro screen leaves no trace.
+  await expect(page.locator("#loading-screen")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /CONTINUE/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /REPLAY INTRO/ })).toHaveCount(
+    0,
+  );
 
   // Home-screen details stay on the home screen.
   await expect(page.locator("#warmup-question")).toBeHidden();
@@ -99,23 +106,12 @@ test("proceed opens the home screen with the same player", async ({ page }) => {
   await expect(page.getByLabel(/What should we call you/)).toBeHidden();
 });
 
-test("back button returns to the ready loading screen", async ({ page }) => {
-  await goToWelcome(page);
-  await page.getByRole("button", { name: "Back to loading screen" }).click();
-  await expect(page.locator("#loading-screen")).toBeVisible();
-  await expect(page.locator("#welcome-screen")).toBeHidden();
-  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeFocused();
-  await page.getByRole("button", { name: "CONTINUE" }).click();
-  await expect(page.locator("#welcome-screen")).toBeVisible();
-});
-
 test("player card is remembered after a reload", async ({ page }) => {
   await goToWelcome(page);
   await page.getByLabel(/What should we call you/).fill("ProudPlayer");
   await page.getByRole("button", { name: "Owl avatar" }).click();
   await page.reload();
-  await page.getByRole("button", { name: "CONTINUE" }).click();
+  // Type-only changes are not a finished profile, so the card screen stays first.
   await expect(
     page.getByRole("heading", { name: /Kumusta, ProudPlayer/ }),
   ).toBeVisible();
