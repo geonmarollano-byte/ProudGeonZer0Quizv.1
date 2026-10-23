@@ -47,10 +47,12 @@ for (const viewport of [
       page.getByRole("heading", { name: /Kumusta/ }),
     ).toBeVisible();
     await page.getByRole("button", { name: /PROCEED/ }).click();
+    await expect(page.locator("#home-screen")).toBeVisible();
+    await page.getByRole("button", { name: /START QUIZ/ }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
-    await page.getByRole("button", { name: "BACK TO WELCOME" }).click();
+    await page.getByRole("button", { name: "BACK TO HOME" }).click();
     await expect(page.getByRole("dialog")).toBeHidden();
-    await expect(page.locator("#welcome-screen")).toBeVisible();
+    await expect(page.locator("#home-screen")).toBeVisible();
     expect(errors).toEqual([]);
     expect(remote).toEqual([]);
     if (viewport.width === 393)
@@ -95,10 +97,13 @@ test("reduced motion and keyboard navigation", async ({ page }) => {
   await expect(page.locator("#welcome-screen")).toBeVisible();
   await page.getByRole("button", { name: /PROCEED/ }).focus();
   await page.keyboard.press("Enter");
+  await expect(page.locator("#home-screen")).toBeVisible();
+  await page.getByRole("button", { name: /START QUIZ/ }).focus();
+  await page.keyboard.press("Enter");
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toBeHidden();
-  await expect(page.getByRole("button", { name: /PROCEED/ })).toBeFocused();
+  await expect(page.getByRole("button", { name: /START QUIZ/ })).toBeFocused();
 });
 
 test("dialog padding does not dismiss it but backdrop does", async ({
@@ -108,6 +113,7 @@ test("dialog padding does not dismiss it but backdrop does", async ({
   await page.goto("/");
   await page.getByRole("button", { name: "CONTINUE" }).click();
   await page.getByRole("button", { name: /PROCEED/ }).click();
+  await page.getByRole("button", { name: /START QUIZ/ }).click();
   const modal = page.getByRole("dialog");
   const box = await modal.boundingBox();
   await page.mouse.click(box.x + 10, box.y + 10);
@@ -158,6 +164,8 @@ for (const mode of ["unsupported", "rejected"]) {
     await page.getByRole("button", { name: "CONTINUE" }).click();
     await expect(page.locator("#welcome-screen")).toBeVisible();
     await page.getByRole("button", { name: /PROCEED/ }).click();
+    await expect(page.locator("#home-screen")).toBeVisible();
+    await page.getByRole("button", { name: /START QUIZ/ }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
   });
 }
