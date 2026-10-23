@@ -10,7 +10,15 @@ const dialog = document.querySelector("#coming-soon");
 
 // This is an intentional intro, not simulated network activity. All assets are local.
 // Start after local assets finish, then use elapsed time (not queued timers).
+let introTimer;
 function startIntro() {
+  window.clearTimeout(introTimer);
+  document.querySelector("#loading-panel").hidden = false;
+  document.querySelector("#ready-panel").hidden = true;
+  percentage.textContent = "1";
+  progress.setAttribute("aria-valuenow", "1");
+  fill.style.width = "1%";
+  announcement.textContent = "";
   const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ? 500
     : 3600;
@@ -28,20 +36,25 @@ function startIntro() {
       lastValue = value;
     }
     if (value < 100) {
-      window.setTimeout(() => frame(performance.now()), 32);
+      introTimer = window.setTimeout(() => frame(performance.now()), 32);
     } else {
       // Let 100% paint once before replacing the progress UI.
-      window.setTimeout(() => {
+      introTimer = window.setTimeout(() => {
         document.querySelector("#loading-panel").hidden = true;
         document.querySelector("#ready-panel").hidden = false;
         announcement.textContent = "Loading complete. Continue is ready.";
       }, 180);
     }
   }
-  window.setTimeout(() => frame(performance.now()), 32);
+  introTimer = window.setTimeout(() => frame(performance.now()), 32);
 }
 if (document.readyState === "complete") startIntro();
 else window.addEventListener("load", startIntro, { once: true });
+
+document.querySelector("#replay").addEventListener("click", () => {
+  startIntro();
+  document.querySelector("#fullscreen").focus({ preventScroll: true });
+});
 
 async function enterFullscreen() {
   if (

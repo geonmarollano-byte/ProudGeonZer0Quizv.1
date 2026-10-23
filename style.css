@@ -646,3 +646,140 @@ dialog p:not(.eyebrow) {
     padding-top: 12px;
   }
 }
+/* Lightweight transform-only game effects, kept alive even after loading. */
+.orbit-one {
+  border-color: #e9bb7155;
+  border-top-color: #ffe1a8;
+  border-right-color: transparent;
+  animation: energy-spin 7s linear infinite;
+}
+.orbit-two {
+  border-color: #e9bb7130;
+  border-bottom-color: #e9bb7199;
+  animation: energy-spin 19s linear infinite reverse;
+}
+.emblem {
+  animation: emblem-float 3.5s ease-in-out infinite;
+}
+.spark-one {
+  animation: spark-pulse 2s ease-in-out infinite;
+}
+.spark-two {
+  animation: spark-pulse 2s ease-in-out 1s infinite;
+}
+.game-atmosphere {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: -1;
+  pointer-events: none;
+}
+.game-atmosphere span {
+  position: absolute;
+  bottom: -30px;
+  left: 12%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #e9bb71;
+  box-shadow: 0 0 12px #e9bb7180;
+  animation: rise 13s linear infinite;
+}
+.game-atmosphere span:nth-child(2) {
+  left: 27%;
+  animation-delay: -5s;
+  animation-duration: 17s;
+}
+.game-atmosphere span:nth-child(3) {
+  left: 44%;
+  animation-delay: -9s;
+}
+.game-atmosphere span:nth-child(4) {
+  left: 65%;
+  animation-delay: -3s;
+  animation-duration: 16s;
+}
+.game-atmosphere span:nth-child(5) {
+  left: 79%;
+  animation-delay: -11s;
+}
+.game-atmosphere span:nth-child(6) {
+  left: 92%;
+  animation-delay: -7s;
+  animation-duration: 19s;
+}
+#progress-fill {
+  position: relative;
+  overflow: hidden;
+}
+#progress-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, #fff9, transparent);
+  animation: loading-sweep 1.2s linear infinite;
+}
+.replay {
+  display: block;
+  margin: 10px auto 0;
+  border: 0;
+  background: transparent;
+  color: #b8a17d;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+.replay:hover {
+  color: #ffe1a8;
+}
+@keyframes energy-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes emblem-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+@keyframes spark-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes rise {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  15%,
+  75% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate3d(35px, -95vh, 0);
+    opacity: 0;
+  }
+}
+@keyframes loading-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-atmosphere {
+    display: none;
+  }
+}

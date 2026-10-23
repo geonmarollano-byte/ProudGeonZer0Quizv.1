@@ -1,11 +1,15 @@
 "use strict";
-const CACHE = "proudgeon-loading-v2";
+const CACHE = "proudgeon-loading-v3";
 const ASSETS = ["./", "./index.html", "./style.css", "./app.js", "./logo.svg"];
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((cache) => cache.addAll(ASSETS))
+      .then((cache) =>
+        cache.addAll(
+          ASSETS.map((url) => new Request(url, { cache: "reload" })),
+        ),
+      )
       .then(() => self.skipWaiting()),
   );
 });

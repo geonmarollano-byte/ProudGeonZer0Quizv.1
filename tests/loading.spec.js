@@ -148,3 +148,19 @@ for (const mode of ["unsupported", "rejected"]) {
     await expect(page.getByRole("dialog")).toBeVisible();
   });
 }
+
+test("game effects animate and intro can be replayed", async ({ page }) => {
+  await page.goto("/");
+  const orbit = page.locator(".orbit-one");
+  await expect(orbit).toHaveCSS("animation-name", "energy-spin");
+  const before = await orbit.evaluate((el) => getComputedStyle(el).transform);
+  await expect
+    .poll(() => orbit.evaluate((el) => getComputedStyle(el).transform))
+    .not.toBe(before);
+  await page.getByRole("button", { name: "REPLAY INTRO" }).click();
+  await expect(page.getByRole("progressbar")).toBeVisible();
+  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible({
+    timeout: 10000,
+  });
+});
