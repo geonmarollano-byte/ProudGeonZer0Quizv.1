@@ -84,7 +84,14 @@ document
   .querySelector("#close-dialog")
   .addEventListener("click", () => dialog.close());
 dialog.addEventListener("click", (event) => {
-  if (event.target === dialog) dialog.close();
+  // Dialog padding belongs to the dialog too; only dismiss actual backdrop taps.
+  const bounds = dialog.getBoundingClientRect();
+  const outside =
+    event.clientX < bounds.left ||
+    event.clientX > bounds.right ||
+    event.clientY < bounds.top ||
+    event.clientY > bounds.bottom;
+  if (event.target === dialog && outside) dialog.close();
 });
 
 // Cache the small, dependency-free app for later offline visits.

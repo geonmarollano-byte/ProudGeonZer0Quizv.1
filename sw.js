@@ -1,5 +1,5 @@
 "use strict";
-const CACHE = "proudgeon-loading-v1";
+const CACHE = "proudgeon-loading-v2";
 const ASSETS = ["./", "./index.html", "./style.css", "./app.js", "./logo.svg"];
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -32,8 +32,25 @@ self.addEventListener("fetch", (event) => {
   )
     return;
   event.respondWith(
-    caches
-      .match(event.request)
-      .then((cached) => cached || fetch(event.request)),
+    caches.open(CACHE).then(async (cache) => {
+      const cached = await cache.match(event.request);
+      if (cached) return cached;
+      try {
+        return await fetch(event.request);
+      } catch (error) {
+        // Query strings (e.g. a shared launch link) must not break offline launches.
+        const url = new URL(event.request.url);
+        const home = new URL("./", self.location.href);
+        if (
+          event.request.mode === "navigate" &&
+          (url.pathname === home.pathname ||
+            url.pathname === `${home.pathname}index.html`)
+        ) {
+          const fallback = await cache.match(new URL("index.html", home).href);
+          if (fallback) return fallback;
+        }
+        throw error;
+      }
+    }),
   );
 });

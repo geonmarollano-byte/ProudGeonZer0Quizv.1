@@ -48,12 +48,12 @@ for (const viewport of [
     expect(remote).toEqual([]);
     if (viewport.width === 393)
       await page.screenshot({
-        path: "/home/user/mobile-preview.png",
+        path: test.info().outputPath("mobile-preview.png"),
         fullPage: true,
       });
     if (viewport.width === 1440)
       await page.screenshot({
-        path: "/home/user/desktop-preview.png",
+        path: test.info().outputPath("desktop-preview.png"),
         fullPage: true,
       });
   });
@@ -90,3 +90,61 @@ test("reduced motion and keyboard navigation", async ({ page }) => {
   await expect(page.getByRole("dialog")).toBeHidden();
   await expect(page.getByRole("button", { name: "CONTINUE" })).toBeFocused();
 });
+
+test("dialog padding does not dismiss it but backdrop does", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.getByRole("button", { name: "CONTINUE" }).click();
+  const modal = page.getByRole("dialog");
+  const box = await modal.boundingBox();
+  await page.mouse.click(box.x + 10, box.y + 10);
+  await expect(modal).toBeVisible();
+  await page.mouse.click(5, 5);
+  await expect(modal).toBeHidden();
+});
+
+test("offline launch supports query strings and index.html", async ({
+  page,
+  context,
+}) => {
+  await page.goto("/");
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+    if (!navigator.serviceWorker.controller) {
+      await new Promise((resolve) =>
+        navigator.serviceWorker.addEventListener("controllerchange", resolve, {
+          once: true,
+        }),
+      );
+    }
+  });
+  await context.setOffline(true);
+  for (const path of ["/?source=shared", "/index.html?source=shared"]) {
+    await page.goto(path);
+    await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible({
+      timeout: 10000,
+    });
+  }
+});
+
+for (const mode of ["unsupported", "rejected"]) {
+  test(`fullscreen ${mode} shows fallback without breaking Continue`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.addInitScript((mode) => {
+      Object.defineProperty(document, "fullscreenEnabled", {
+        get: () => mode !== "unsupported",
+      });
+      Element.prototype.requestFullscreen = () =>
+        Promise.reject(new Error("Denied"));
+    }, mode);
+    await page.goto("/");
+    await page.getByRole("button", { name: "Enter fullscreen" }).click();
+    await expect(page.locator("#fullscreen-note")).not.toBeEmpty();
+    await page.getByRole("button", { name: "CONTINUE" }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+  });
+}

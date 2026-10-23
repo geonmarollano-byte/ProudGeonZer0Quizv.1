@@ -33,6 +33,6 @@ npm ci
 npm test
 ```
 
-Seven Playwright tests cover five viewport sizes (1440×900, 393×851, 360×640, 320×568, 851×393), 100% completion and replacement, Continue dialog, overflow, runtime errors, external-request absence, offline reload, reduced motion, and keyboard operation. Tests use an npm-distributed Linux Chromium browser; set `CHROME_PATH` to use a different installed Chromium executable. Node 22+ and Python 3 are required for the test setup.
+Eleven Playwright tests cover five viewport sizes (1440×900, 393×851, 360×640, 320×568, 851×393), 100% completion and replacement, Continue dialog, overflow, runtime errors, external-request absence, offline reload, reduced motion, keyboard operation, dialog backdrop behavior, offline launch links with query strings, and fullscreen rejection/unsupported fallbacks. Tests use an npm-distributed Linux Chromium browser; set `CHROME_PATH` to use a different installed Chromium executable. Node 22+ and Python 3 are required for the test setup.
 
 Tests emulate mobile viewport sizes in Chromium; real Android hardware testing is still recommended before a production release.
