@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#090e19" />
+    <meta
+      name="description"
+      content="ProudGeonZer0Quizv.1 — Your next level starts with curiosity. Offline quiz game loading screen."
+    />
+    <title>ProudGeonZer0Quizv.1</title>
+    <link rel="icon" href="./logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./style.css" />
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <main class="screen">
+      <div class="game-atmosphere" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span
+        ><span></span>
+      </div>
+      <header class="topbar">
+        <span class="studio"
+          ><span class="studio-mark" aria-hidden="true">P<span>G</span></span>
+          PROUDGEON <span class="studio-divider">/</span> PLAY. GROW.
+          REPEAT.</span
+        >
+        <button
+          class="fullscreen"
+          id="fullscreen"
+          type="button"
+          aria-label="Enter fullscreen"
+          title="Toggle fullscreen"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            aria-hidden="true"
+          >
+            <path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5" />
+          </svg>
+        </button>
+      </header>
+
+      <section class="identity" aria-labelledby="game-title">
+        <div class="emblem-wrap" aria-hidden="true">
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <span class="spark spark-one"></span
+          ><span class="spark spark-two"></span>
+          <div class="emblem">
+            <svg viewBox="0 0 100 100" fill="none">
+              <path
+                d="M50 12 80 29v35L50 82 20 64V29L50 12Z"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <path
+                d="m50 23 20 12v23L50 70 30 58V35l20-12Z"
+                fill="currentColor"
+                fill-opacity=".09"
+              />
+              <path
+                d="M55 30 37 52h13l-5 19 20-27H52l3-14Z"
+                fill="currentColor"
+              />
+              <path
+                d="m67 73 10 10m-7-1h8v-8"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+              />
+            </svg>
+          </div>
+          <span class="emblem-caption">THE MIND IS LIMITLESS</span>
+        </div>
+        <p class="eyebrow">A LITTLE CURIOSITY. A NEW LEVEL.</p>
+        <h1 id="game-title">
+          PROUDGEON<span>ZER0QUIZ<span class="version">V.1</span></span>
+        </h1>
+        <div class="title-rule" aria-hidden="true">
+          <span></span><i></i><span></span>
+        </div>
+        <div class="quote">
+          <span class="quote-mark" aria-hidden="true">“</span>
+          <p>GREATNESS BEGINS WITH THE COURAGE TO LEARN.</p>
+          <span class="quote-credit">STAY CURIOUS. KEEP GROWING.</span>
+        </div>
+      </section>
+
+      <section class="launch" aria-label="Game loading">
+        <div id="loading-panel">
+          <div class="progress-heading">
+            <span id="loading-label">PREPARING YOUR NEXT CHALLENGE</span
+            ><span class="percentage"
+              ><span id="percentage">1</span><small>%</small></span
+            >
+          </div>
+          <div
+            class="progress-track"
+            id="progress"
+            role="progressbar"
+            aria-label="Loading game"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="1"
+          >
+            <div id="progress-fill"></div>
+          </div>
+          <p class="loading-note">
+            <span class="status-dot"></span> A SHARPER MIND IS JUST A MOMENT
+            AWAY
+          </p>
+        </div>
+        <div id="ready-panel" hidden>
+          <button id="continue" class="continue" type="button">
+            CONTINUE <span aria-hidden="true">↗</span>
+          </button>
+          <p class="loading-note">
+            <span class="status-dot"></span> READY WHEN YOU ARE
+          </p>
+          <button id="replay" class="replay" type="button">
+            ↻ REPLAY INTRO
+          </button>
+        </div>
+        <p
+          id="announcement"
+          class="sr-only"
+          role="status"
+          aria-live="polite"
+        ></p>
+        <p id="fullscreen-note" class="fullscreen-note" role="status"></p>
+      </section>
+
+      <footer>
+        <span><span class="offline-dot"></span> OFFLINE READY</span
+        ><span class="footer-center">BUILT FOR THE CURIOUS.</span
+        ><span>VERSION 1.0 <span class="footer-slash">/</span> 2026</span>
+      </footer>
+    </main>
+    <dialog id="coming-soon" aria-labelledby="dialog-title">
+      <div class="dialog-icon" aria-hidden="true">✦</div>
+      <p class="eyebrow">YOU’RE ALL SET</p>
+      <h2 id="dialog-title">A great start.</h2>
+      <p>
+        Your loading screen is ready.<br />The quiz adventure is coming next.
+      </p>
+      <button id="close-dialog" class="continue" type="button">
+        BACK TO START <span aria-hidden="true">↗</span>
+      </button>
+    </dialog>
+    <noscript
+      ><div class="no-script">
+        Please enable JavaScript to run this offline loading screen.
+      </div></noscript
+    >
+  </body>
+</html>
