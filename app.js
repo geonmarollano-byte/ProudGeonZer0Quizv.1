@@ -8,10 +8,12 @@ const announcement = document.querySelector("#announcement");
 const dialog = document.querySelector("#coming-soon");
 const loadingScreen = document.querySelector("#loading-screen");
 const welcomeScreen = document.querySelector("#welcome-screen");
+const homeScreen = document.querySelector("#home-screen");
 const fullscreenButtons = document.querySelectorAll(".fullscreen");
 const fullscreenNotes = [
   document.querySelector("#fullscreen-note"),
   document.querySelector("#welcome-fullscreen-note"),
+  document.querySelector("#home-fullscreen-note"),
 ];
 
 // This is an intentional intro, not simulated network activity. All assets are local.
@@ -237,12 +239,27 @@ const el = {
   dailyDots: document.querySelector("#daily-dots"),
   dailyCount: document.querySelector("#daily-count"),
   funFact: document.querySelector("#fun-fact"),
-  welcomeAnnouncement: document.querySelector("#welcome-announcement"),
   soundToggle: document.querySelector("#sound-toggle"),
   welcomeTitle: document.querySelector("#welcome-title"),
   welcomeScroll: document.querySelector("#welcome-scroll"),
+  welcomeAnnouncement: document.querySelector("#welcome-announcement"),
   dialogName: document.querySelector("#dialog-name"),
   dialogSummary: document.querySelector("#dialog-summary"),
+  homeAvatar: document.querySelector("#home-avatar"),
+  homeGreetingName: document.querySelector("#home-greeting-name"),
+  homeStyle: document.querySelector("#home-style"),
+  homeTopicInline: document.querySelector("#home-topic-inline"),
+  homeLevel: document.querySelector("#home-level"),
+  homeTopics: document.querySelector("#home-topics"),
+  homeSummaryAvatar: document.querySelector("#home-summary-avatar"),
+  homeSummaryText: document.querySelector("#home-summary-text"),
+  homeSummarySub: document.querySelector("#home-summary-sub"),
+  homeScroll: document.querySelector("#home-scroll"),
+  homeAnnouncement: document.querySelector("#home-announcement"),
+  homeTitle: document.querySelector("#home-title"),
+  badgeList: document.querySelector("#badge-list"),
+  badgeCount: document.querySelector("#badge-count"),
+  startQuiz: document.querySelector("#start-quiz"),
 };
 
 const displayName = () => player.name.trim() || "Challenger";
@@ -297,7 +314,62 @@ function renderPlayer() {
     "aria-label",
     player.sound ? "Turn sound off" : "Turn sound on",
   );
+
+  // Home screen: same player, but presented as a quest hub.
+  el.homeGreetingName.textContent = name;
+  el.homeAvatar.textContent = player.avatar;
+  el.homeStyle.textContent = DIFFICULTIES[player.difficulty];
+  el.homeLevel.textContent = String(level());
+  el.homeTopicInline.textContent =
+    player.topics.length > 0
+      ? `${player.topics.length} favorite topic${player.topics.length === 1 ? "" : "s"}`
+      : "All topics unlocked";
+  el.homeSummaryAvatar.textContent = player.avatar;
+  el.homeSummaryText.textContent = `Ready to play, ${name}?`;
+  el.homeSummarySub.textContent = player.dailyRewardClaimed
+    ? `${player.xp} XP · ${player.coins} coins · Quest complete today!`
+    : `${player.xp} XP · ${player.coins} coins · Quest of the day is waiting.`;
+  renderHomeTopics();
+  renderBadges();
   renderDailyQuest();
+}
+
+function renderHomeTopics() {
+  if (!el.homeTopics) return;
+  el.homeTopics.replaceChildren();
+  if (player.topics.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "card-note empty-topics";
+    empty.textContent =
+      "No topics yet — the whole quiz world is open to you! Tap EDIT PLAYER CARD to choose some.";
+    el.homeTopics.appendChild(empty);
+    return;
+  }
+  player.topics.forEach((topic) => {
+    const pill = document.createElement("span");
+    pill.className = "topic-pill";
+    pill.textContent = topic;
+    el.homeTopics.appendChild(pill);
+  });
+}
+
+function renderBadges() {
+  if (!el.badgeList) return;
+  const solvedCount = player.solved.length;
+  const earned = {
+    "first-steps": solvedCount >= 1,
+    "brain-spark": solvedCount >= 3,
+    "quest-master": player.dailyRewardClaimed,
+  };
+  let total = 0;
+  el.badgeList.querySelectorAll(".badge").forEach((badge) => {
+    const unlocked = Boolean(earned[badge.dataset.badge]);
+    if (unlocked) total += 1;
+    badge.classList.toggle("is-earned", unlocked);
+    const state = badge.querySelector(".badge-state");
+    if (state) state.textContent = unlocked ? "EARNED" : "LOCKED";
+  });
+  el.badgeCount.textContent = `${total} / 3`;
 }
 
 function renderDailyQuest() {
@@ -349,9 +421,10 @@ const soundSuccess = () =>
 const soundWrong = () => playTones([[220, 0, 0.16]]);
 
 /* -------- Confetti celebration (skipped for reduced motion) -------- */
-function celebrate() {
+function celebrate(layerId = "welcome-confetti") {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const layer = document.querySelector("#confetti-layer");
+  const layer = document.querySelector(`#${layerId}`);
+  if (!layer) return;
   layer.replaceChildren();
   const colors = ["#e9bb71", "#ffe1a8", "#7bc47f", "#7cc7e8", "#e89ad1"];
   for (let index = 0; index < 28; index += 1) {
@@ -435,13 +508,21 @@ function answerWarmup(button, quiz, option) {
   saveState();
   renderPlayer();
   soundSuccess();
-  if (!alreadyRewarded) celebrate();
+  if (!alreadyRewarded) celebrate("home-confetti");
 }
 el.warmupNext.addEventListener("click", () => {
-  // Move to a different question than the one just shown.
-  let next = Math.floor(Math.random() * WARMUP_QUESTIONS.length);
-  if (next === warmupIndex) next = (next + 1) % WARMUP_QUESTIONS.length;
-  warmupIndex = next;
+  // Prefer a question the player has not solved yet so new questions
+  // never repeat until the whole set has been seen.
+  const indexes = WARMUP_QUESTIONS.map((_, index) => index);
+  const fresh = indexes.filter(
+    (index) =>
+      index !== warmupIndex &&
+      !player.solved.includes(WARMUP_QUESTIONS[index].id),
+  );
+  const pool = fresh.length
+    ? fresh
+    : indexes.filter((index) => index !== warmupIndex);
+  warmupIndex = pool[Math.floor(Math.random() * pool.length)] ?? warmupIndex;
   renderWarmup();
   soundClick();
 });
@@ -513,45 +594,74 @@ el.soundToggle.addEventListener("click", () => {
 });
 
 /* ================= SCREEN NAVIGATION ================= */
-function showWelcome() {
-  loadingScreen.hidden = true;
-  welcomeScreen.hidden = false;
-  el.welcomeScroll.scrollTop = 0;
-  el.motivation.textContent =
-    MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)];
-  el.welcomeAnnouncement.textContent = `Welcome, ${displayName()}! Set up your player card and try the warm-up challenge.`;
-  renderPlayer();
-  celebrate();
-  soundSuccess();
-  el.welcomeTitle.focus({ preventScroll: true });
-}
-function showLoading() {
-  welcomeScreen.hidden = true;
-  loadingScreen.hidden = false;
-  // The intro already finished once, so return straight to the ready panel.
-  document.querySelector("#loading-panel").hidden = true;
-  document.querySelector("#ready-panel").hidden = false;
-  document.querySelector("#continue").focus({ preventScroll: true });
-}
-document
-  .querySelector("#continue")
-  .addEventListener("click", showWelcome);
-document
-  .querySelector("#welcome-back")
-  .addEventListener("click", () => {
-    soundClick();
-    showLoading();
-  });
+const screens = {
+  loading: loadingScreen,
+  welcome: welcomeScreen,
+  home: homeScreen,
+};
 
-/* -------- Proceed: honest, reversible next step -------- */
+function showScreen(name) {
+  Object.entries(screens).forEach(([key, node]) => {
+    node.hidden = key !== name;
+  });
+  if (name === "welcome") {
+    el.welcomeScroll.scrollTop = 0;
+    el.motivation.textContent =
+      MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)];
+    el.welcomeAnnouncement.textContent = `Welcome, ${displayName()}! Set up your player card, then proceed to your quest hub.`;
+    celebrate("welcome-confetti");
+    soundSuccess();
+    el.welcomeTitle.focus({ preventScroll: true });
+  }
+  if (name === "home") {
+    el.homeScroll.scrollTop = 0;
+    el.homeAnnouncement.textContent = `Welcome back, ${displayName()}! Your quest hub is ready.`;
+    celebrate("home-confetti");
+    soundClick();
+    el.homeTitle.focus({ preventScroll: true });
+  }
+  if (name === "loading") {
+    // The intro already finished once, so return straight to the ready panel.
+    document.querySelector("#loading-panel").hidden = true;
+    document.querySelector("#ready-panel").hidden = false;
+    document.querySelector("#continue").focus({ preventScroll: true });
+  }
+}
+
+document.querySelector("#continue").addEventListener("click", () => {
+  renderPlayer();
+  showScreen("welcome");
+});
+document.querySelector("#welcome-back").addEventListener("click", () => {
+  soundClick();
+  showScreen("loading");
+});
+document.querySelector("#home-back").addEventListener("click", () => {
+  soundClick();
+  showScreen("welcome");
+});
+
+/* -------- Welcome → Home (player card is set, enter the quest hub) -------- */
 document.querySelector("#proceed").addEventListener("click", () => {
+  saveState();
+  renderPlayer();
+  showScreen("home");
+});
+document.querySelector("#edit-profile").addEventListener("click", () => {
+  soundClick();
+  showScreen("welcome");
+});
+
+/* -------- Start Quiz: honest, reversible next step -------- */
+el.startQuiz.addEventListener("click", () => {
   el.dialogName.textContent = displayName();
   const topics =
     player.topics.length > 0 ? player.topics.join(", ") : "surprise topics";
   el.dialogSummary.textContent =
-    `You’re all set as a ${DIFFICULTIES[player.difficulty]} ` +
-    `with ${player.xp} XP and ${player.coins} coins. Your favorite topics: ${topics}. ` +
-    `The quiz adventure map is coming in the next screen — great job warming up, ${displayName()}!`;
+    `Quest hub cleared as a ${DIFFICULTIES[player.difficulty]}. ` +
+    `You have ${player.xp} XP and ${player.coins} coins, with ${player.solved.length} warm-up ` +
+    `question${player.solved.length === 1 ? "" : "s"} solved. Topics: ${topics}. ` +
+    `The full quiz arena is coming in the next update, ${displayName()}!`;
   soundSuccess();
   dialog.showModal();
 });
@@ -569,7 +679,7 @@ dialog.addEventListener("click", (event) => {
   if (event.target === dialog && outside) dialog.close();
 });
 
-/* -------- First paint of the welcome screen (behind the loading screen) -------- */
+/* -------- First paint of the welcome + home screens (behind loading) -------- */
 el.nameInput.value = player.name;
 factIndex = Math.floor(Math.random() * FUN_FACTS.length);
 renderFact();
