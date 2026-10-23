@@ -1,0 +1,14 @@
+{
+  "name": "proudgeonzer0quiz-loading",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Offline-first, mobile-friendly quiz loading screen",
+  "scripts": {
+    "start": "python3 -m http.server 3000 --bind 0.0.0.0",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@sparticuz/chromium": "^153.0.0"
+  }
+}
