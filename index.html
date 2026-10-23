@@ -11,13 +11,13 @@
       name="description"
       content="ProudGeonZer0Quizv.1 — Your next level starts with curiosity. Offline quiz game loading screen."
     />
-    <title>ProudGeonZer0Quizv.1</title>
+    <title>ProudGeonZer0Quizv.1 — Welcome, Challenger!</title>
     <link rel="icon" href="./logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./style.css" />
     <script src="./app.js" defer></script>
   </head>
   <body>
-    <main class="screen">
+    <main class="screen" id="loading-screen">
       <div class="game-atmosphere" aria-hidden="true">
         <span></span><span></span><span></span><span></span><span></span
         ><span></span>
@@ -143,15 +143,335 @@
         ><span>VERSION 1.0 <span class="footer-slash">/</span> 2026</span>
       </footer>
     </main>
+
+    <!-- ============ SECOND SCREEN: WELCOME SCREEN ============ -->
+    <main
+      class="screen welcome-screen"
+      id="welcome-screen"
+      hidden
+      aria-labelledby="welcome-title"
+    >
+      <div class="game-atmosphere" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span
+        ><span></span>
+      </div>
+      <div class="confetti-layer" id="confetti-layer" aria-hidden="true"></div>
+
+      <header class="welcome-topbar">
+        <button
+          class="welcome-back"
+          id="welcome-back"
+          type="button"
+          aria-label="Back to loading screen"
+        >
+          <span aria-hidden="true">←</span> BACK
+        </button>
+        <span class="studio welcome-studio"
+          ><span class="studio-mark" aria-hidden="true">P<span>G</span></span>
+          PROUDGEON <span class="studio-divider">/</span> WELCOME,
+          CHALLENGER!</span
+        >
+        <div class="player-stats" aria-label="Player stats">
+          <span class="stat-chip" id="level-chip" title="Your level"
+            ><svg class="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m12 3 2.6 5.7 6.2.7-4.6 4.2 1.2 6.1L12 16.8 6.6 19.7l1.2-6.1L3.2 9.4l6.2-.7L12 3Z" fill="currentColor" fill-opacity=".22"/></svg> LVL <b id="level-value">1</b></span
+          >
+          <span class="stat-chip" title="Your coins"
+            ><svg class="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="8.4" fill="currentColor" fill-opacity=".18"/><path d="M12 7.6v8.8M14.4 9.4c-.5-.7-1.4-1.1-2.4-1.1-1.3 0-2.3.7-2.3 1.7 0 1 1 1.5 2.3 1.9 1.4.4 2.4.8 2.4 1.9 0 1-1 1.7-2.4 1.7-1.1 0-2-.4-2.5-1.2"/></svg> <b id="coin-count">0</b></span
+          >
+          <button
+            class="welcome-icon-btn"
+            id="sound-toggle"
+            type="button"
+            aria-label="Turn sound off"
+            aria-pressed="true"
+            title="Toggle sound"
+          >
+            <svg class="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 9.5h3L12 5.6v12.8L7 14.5H4z" fill="currentColor" fill-opacity=".22"/><path class="sound-waves" d="M15.6 9.2a3.6 3.6 0 0 1 0 5.6M18.2 6.6a7.2 7.2 0 0 1 0 10.8"/><path class="sound-mute" d="m15.8 9.5 4.4 5M20.2 9.5l-4.4 5"/></svg>
+          </button>
+          <button
+            class="fullscreen welcome-icon-btn"
+            id="welcome-fullscreen"
+            type="button"
+            aria-label="Enter fullscreen"
+            title="Toggle fullscreen"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              aria-hidden="true"
+            >
+              <path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5" />
+            </svg>
+          </button>
+        </div>
+      </header>
+      <p
+        id="welcome-fullscreen-note"
+        class="fullscreen-note"
+        role="status"
+      ></p>
+
+      <div
+        class="welcome-scroll"
+        id="welcome-scroll"
+        tabindex="-1"
+        aria-label="Welcome content"
+      >
+        <section class="welcome-hero">
+          <div class="welcome-avatar-stage" aria-hidden="true">
+            <span class="stage-ring"></span>
+            <span class="stage-avatar" id="hero-avatar">🦊</span>
+            <span class="stage-spark spark-a">✦</span>
+            <span class="stage-spark spark-b">✦</span>
+            <span class="stage-spark spark-c">★</span>
+          </div>
+          <p class="eyebrow welcome-eyebrow">
+            ✦ LEVEL 1 · YOUR ADVENTURE BEGINS ✦
+          </p>
+          <h2 id="welcome-title" tabindex="-1">
+            Kumusta, <span id="greeting-name">Challenger</span>!
+            
+          </h2>
+          <p class="welcome-sub">
+            Welcome to <strong>ProudGeonZer0Quiz</strong> — the quiz adventure
+            where every question makes your mind sharper, stronger, and prouder.
+            Set up your player card, warm up your brain, and let’s play!
+          </p>
+          <p class="motivation" aria-live="polite">
+            <span class="motivation-icon" aria-hidden="true"><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.2 6.4A2.4 2.4 0 0 1 6.6 4h10.8a2.4 2.4 0 0 1 2.4 2.4v6.3a2.4 2.4 0 0 1-2.4 2.4H9.5L5.6 19v-3.9a1.4 1.4 0 0 1-1.4-1.4V6.4Z"/><path d="M8.6 8.9h6.8M8.6 11.9h4.4"/></svg></span>
+            <span id="motivation-text"
+              >Greatness begins with the courage to learn.</span
+            >
+          </p>
+          <div class="xp-block">
+            <div class="xp-heading">
+              <span><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3.6 2.6 5.4 6 .8-4.4 4.2 1.1 5.9L12 17l-5.3 2.9 1.1-5.9L3.4 9.8l6-.8L12 3.6Z"/></svg> PLAYER XP</span>
+              <span
+                ><b id="xp-value">0</b> XP ·
+                <span id="xp-next">100 XP TO LEVEL 2</span></span
+              >
+            </div>
+            <div
+              class="xp-track"
+              role="progressbar"
+              aria-label="Player experience progress"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+              id="xp-progress"
+            >
+              <div id="xp-fill"></div>
+            </div>
+          </div>
+        </section>
+
+        <div class="welcome-grid">
+          <div class="welcome-column">
+            <section class="welcome-card" aria-labelledby="profile-title">
+              <h3 id="profile-title">
+                <svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5a8.5 8.5 0 0 0 0 17c1 0 1.7-.7 1.7-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7h1.6a4.5 4.5 0 0 0 4.5-4.5c0-3.7-3.8-6.7-8.5-6.7Z"/><circle cx="8.4" cy="10.2" r=".9" fill="currentColor"/><circle cx="11.5" cy="7.6" r=".9" fill="currentColor"/><circle cx="15.2" cy="9.2" r=".9" fill="currentColor"/></svg> Create Your Player Card
+              </h3>
+              <label class="field-label" for="player-name"
+                >What should we call you, hero?</label
+              >
+              <input
+                id="player-name"
+                type="text"
+                maxlength="18"
+                placeholder="Type your hero name…"
+                autocomplete="off"
+                spellcheck="false"
+                aria-describedby="name-hint"
+              />
+              <p class="field-hint" id="name-hint">
+                <span id="name-count">0</span>/18 characters · Leave it blank
+                and we’ll call you “Challenger”.
+              </p>
+
+              <p class="picker-label" id="avatar-label">Choose your avatar</p>
+              <div
+                class="avatar-picker"
+                role="group"
+                aria-labelledby="avatar-label"
+              >
+                <button class="avatar-option" type="button" data-avatar="🦊" aria-pressed="true" aria-label="Fox avatar"><span class="avatar-emoji" aria-hidden="true">🦊</span><span class="avatar-name" aria-hidden="true">Fox</span></button>
+                <button class="avatar-option" type="button" data-avatar="🐼" aria-pressed="false" aria-label="Panda avatar"><span class="avatar-emoji" aria-hidden="true">🐼</span><span class="avatar-name" aria-hidden="true">Panda</span></button>
+                <button class="avatar-option" type="button" data-avatar="🦉" aria-pressed="false" aria-label="Owl avatar"><span class="avatar-emoji" aria-hidden="true">🦉</span><span class="avatar-name" aria-hidden="true">Owl</span></button>
+                <button class="avatar-option" type="button" data-avatar="🐲" aria-pressed="false" aria-label="Dragon avatar"><span class="avatar-emoji" aria-hidden="true">🐲</span><span class="avatar-name" aria-hidden="true">Dragon</span></button>
+                <button class="avatar-option" type="button" data-avatar="🚀" aria-pressed="false" aria-label="Rocket avatar"><span class="avatar-emoji" aria-hidden="true">🚀</span><span class="avatar-name" aria-hidden="true">Rocket</span></button>
+                <button class="avatar-option" type="button" data-avatar="🐯" aria-pressed="false" aria-label="Tiger avatar"><span class="avatar-emoji" aria-hidden="true">🐯</span><span class="avatar-name" aria-hidden="true">Tiger</span></button>
+              </div>
+
+              <p class="picker-label" id="difficulty-label">
+                Choose your quest style
+              </p>
+              <div
+                class="difficulty-list"
+                role="radiogroup"
+                aria-labelledby="difficulty-label"
+              >
+                <button class="difficulty-option" type="button" role="radio" aria-checked="false" data-difficulty="chill" data-difficulty-label="Chill Explorer">
+                  <span class="difficulty-icon" aria-hidden="true"><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 4.5C11 4.5 5 8.2 5 14.4c0 1.4.3 2.7.8 3.8C8.2 12.6 12.4 9.2 17 8.2c-3.6 2.3-6.4 5.7-7.6 10.6"/><path d="M4.5 20.5c9.7 1 15-4.4 15-16Z"/></svg></span>
+                  <strong>Chill Explorer</strong>
+                  <small>Relaxed play, no pressure. Learn at your own pace.</small>
+                </button>
+                <button class="difficulty-option" type="button" role="radio" aria-checked="true" data-difficulty="brave" data-difficulty-label="Brave Challenger">
+                  <span class="difficulty-icon" aria-hidden="true"><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.2 2.8 6.4 13.4h4.4l-1.1 7.8 7.9-11.1h-4.6l.2-7.3Z" fill="currentColor" fill-opacity=".18"/></svg></span>
+                  <strong>Brave Challenger</strong>
+                  <small>A balanced adventure with a fun little thrill.</small>
+                </button>
+                <button class="difficulty-option" type="button" role="radio" aria-checked="false" data-difficulty="legendary" data-difficulty-label="Legendary Mastermind">
+                  <span class="difficulty-icon" aria-hidden="true"><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c3.9 0 6.6-2.5 6.6-6 0-4.6-4-6-3.1-11.4-3 1-5.3 3.7-5.3 6.6 0 1.5.5 2.4 0 3.2-.6.9-1.6.5-2.1-.6-.7 1.3-1 2.6-1 4 0 2.5 2 4.2 4.9 4.2Z" fill="currentColor" fill-opacity=".14"/></svg></span>
+                  <strong>Legendary Mastermind</strong>
+                  <small>For fearless minds who love a real challenge.</small>
+                </button>
+              </div>
+            </section>
+
+            <section class="welcome-card" aria-labelledby="topics-title">
+              <h3 id="topics-title">
+                <svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"/><path d="m15.2 8.8-1.6 4.6-4.6 1.6 1.6-4.6 4.6-1.6Z"/></svg> Pick Your Favorite Topics
+              </h3>
+              <p class="card-note">
+                Piliin ang mga paksang gusto mo — tap as many as you like!
+              </p>
+              <div
+                class="topic-list"
+                role="group"
+                aria-label="Favorite quiz topics"
+              >
+                <button class="topic-chip" type="button" data-topic="General Knowledge" aria-pressed="true"><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8M12 3.6c2.3 2.3 3.5 5.3 3.5 8.4S14.3 18.1 12 20.4C9.7 18.1 8.5 15.1 8.5 12S9.7 5.9 12 3.6Z"/></svg> General</button>
+                <button class="topic-chip" type="button" data-topic="Science" aria-pressed="false"><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.6 3.6h4.8M10.6 3.6v5.2L6 17.2a1.8 1.8 0 0 0 1.6 2.6h8.8a1.8 1.8 0 0 0 1.6-2.6l-4.6-8.4V3.6"/><path d="M7.8 14.4h8.4"/></svg> Science</button>
+                <button class="topic-chip" type="button" data-topic="Math" aria-pressed="false"><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5.8" r="1.2" fill="currentColor"/><circle cx="12" cy="18.2" r="1.2" fill="currentColor"/><path d="M5 12h14"/></svg> Math</button>
+                <button class="topic-chip" type="button" data-topic="History" aria-pressed="false"><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.6 5.2A1.8 1.8 0 0 1 6.4 3.4h5.1v16.8H6.4a1.8 1.8 0 0 1-1.8-1.8Z"/><path d="M19.4 5.2a1.8 1.8 0 0 0-1.8-1.8h-5.1v16.8h5.1a1.8 1.8 0 0 0 1.8-1.8Z"/></svg> History</button>
+                <button class="topic-chip" type="button" data-topic="Technology" aria-pressed="false"><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4.6" width="14" height="9.6" rx="1.4"/><path d="M2.8 17.8h18.4M9.6 19.4h4.8"/></svg> Tech</button>
+                <button class="topic-chip" type="button" data-topic="Sports" aria-pressed="false"><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"/><path d="M3.8 9.4c5.4-.6 11 .8 15.8 4M8.6 3.9c2.4 4.6 3.2 9.4 2.4 14.6M15.9 4.6c-2.9 3-5 6.7-6 11"/></svg> Sports</button>
+                <button class="topic-chip" type="button" data-topic="Pop Culture" aria-pressed="false"><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.6" y="5" width="16.8" height="14" rx="1.8"/><path d="M8.2 5v14M15.8 5v14M3.6 9.6h4.6M15.8 9.6h4.6M3.6 14.4h4.6M15.8 14.4h4.6"/></svg> Pop Culture</button>
+                <button class="topic-chip" type="button" data-topic="Philippines" aria-pressed="false"><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.2 20.4V4.2c4-2 7.6 2 11.6 0v9.2c-4 2-7.6-2-11.6 0"/><path d="M4.4 20.4h3.6"/></svg> Philippines</button>
+              </div>
+              <p class="selected-summary" id="topic-summary" aria-live="polite"></p>
+            </section>
+          </div>
+
+          <div class="welcome-column">
+            <section
+              class="welcome-card warmup-card"
+              aria-labelledby="warmup-title"
+            >
+              <div class="card-heading-row">
+                <h3 id="warmup-title">
+                  <svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.2 8.5h7.6c2.4 0 4.2 2 4.2 4.4 0 2.6-2 4.6-4.4 4.6-1 0-1.9-.4-2.6-1.1l-.5-.5h-.9l-.5.5c-.7.7-1.6 1.1-2.6 1.1C6.1 17.5 4 15.5 4 12.9c0-2.4 1.8-4.4 4.2-4.4Z"/><path d="M8.4 10.6v2.6M7.1 11.9h2.6M15.6 11.4h.1M17.1 13h.1"/></svg> Warm-Up Challenge
+                </h3>
+                <span class="xp-badge">+10 XP</span>
+              </div>
+              <p class="card-note">
+                Try one quick question before your quest — no pressure, just
+                pure brain fun!
+              </p>
+              <p class="warmup-question" id="warmup-question"></p>
+              <div class="warmup-options" id="warmup-options"></div>
+              <p
+                class="warmup-feedback"
+                id="warmup-feedback"
+                role="status"
+                aria-live="polite"
+              ></p>
+              <button
+                class="mini-btn"
+                id="warmup-next"
+                type="button"
+                hidden
+              >
+                ↻ NEW QUESTION
+              </button>
+            </section>
+
+            <section class="welcome-card" aria-labelledby="daily-title">
+              <div class="card-heading-row">
+                <h3 id="daily-title">
+                  <svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.4l1.9 5 5 1.9-5 1.9-1.9 5-1.9-5-5-1.9 5-1.9 1.9-5Z" fill="currentColor" fill-opacity=".2"/></svg> Quest of the Day
+                </h3>
+                <span class="xp-badge coin-badge">+50 <svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4" fill="currentColor" fill-opacity=".18"/><path d="M12 7.6v8.8M14.4 9.4c-.5-.7-1.4-1.1-2.4-1.1-1.3 0-2.3.7-2.3 1.7 0 1 1 1.5 2.3 1.9 1.4.4 2.4.8 2.4 1.9 0 1-1 1.7-2.4 1.7-1.1 0-2-.4-2.5-1.2"/></svg></span>
+              </div>
+              <p class="card-note">
+                Solve <strong>5 warm-up questions</strong> today to complete
+                this quest and earn bonus coins. Kaya mo ’yan!
+              </p>
+              <div class="daily-progress">
+                <div
+                  class="daily-dots"
+                  id="daily-dots"
+                  aria-hidden="true"
+                ></div>
+                <span id="daily-count">0 / 5 SOLVED</span>
+              </div>
+            </section>
+
+            <section class="welcome-card" aria-labelledby="fact-title">
+              <h3 id="fact-title">
+                <svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 15.6a5 5 0 1 1 6 0c-.6.5-1 1.2-1 2v.6H10v-.6c0-.8-.4-1.5-1-2Z"/><path d="M10.4 20.2h3.2M10.9 21.6h2.2"/></svg> Did You Know?
+              </h3>
+              <p class="fun-fact" id="fun-fact"></p>
+              <button class="mini-btn" id="fact-shuffle" type="button">
+                SHUFFLE A FUN FACT
+              </button>
+            </section>
+
+            <section class="welcome-card how-card" aria-labelledby="how-title">
+              <h3 id="how-title">
+                <svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 4.8 6 2.2 4.4-1.6v12.8L15 19.8l-6-2.2-4.4 1.6V6.4L9 4.8Z"/><path d="M9 4.8v12.8M15 7v12.8"/></svg> How to Play
+              </h3>
+              <ol class="how-list">
+                <li><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 1-1 1.7v.5M12 16.6v.1"/></svg> Answer fun questions from your favorite topics.</li>
+                <li><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3.6 2.6 5.4 6 .8-4.4 4.2 1.1 5.9L12 17l-5.3 2.9 1.1-5.9L3.4 9.8l6-.8L12 3.6Z"/></svg> Earn XP and coins for every correct answer.</li>
+                <li><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 4.6h7v4.1a3.5 3.5 0 0 1-7 0V4.6Z"/><path d="M8.5 5.6H6.2v1.5a3 3 0 0 0 2.9 3M15.5 5.6h2.3v1.5a3 3 0 0 1-2.9 3"/><path d="M10.4 15.7h3.2l.5 3.8H9.9l.5-3.8ZM8.8 19.5h6.4"/></svg> Level up, keep your streak, and become a Quiz Legend!</li>
+              </ol>
+            </section>
+          </div>
+        </div>
+
+        <p class="welcome-tip">
+          <svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6h11.2L19.4 8v11.4H5Z"/><path d="M8.4 4.6v5.2h6.6V4.6M8.4 15.2h7.6v4.2H8.4z"/></svg> Your player card is saved on this device, so we’ll remember you
+          next visit. No account needed — just play!
+        </p>
+        <p
+          id="welcome-announcement"
+          class="sr-only"
+          role="status"
+          aria-live="polite"
+        ></p>
+      </div>
+
+      <footer class="welcome-action-bar">
+        <div class="action-summary">
+          <span class="action-avatar" id="summary-avatar" aria-hidden="true"
+            >🦊</span
+          >
+          <div class="action-summary-text">
+            <strong id="summary-text">Challenger · Brave Challenger</strong>
+            <small id="summary-sub">Ready for your first quest? 🚀</small>
+          </div>
+        </div>
+        <button id="proceed" class="continue proceed-btn" type="button">
+          PROCEED <span aria-hidden="true">→</span>
+        </button>
+      </footer>
+    </main>
+
     <dialog id="coming-soon" aria-labelledby="dialog-title">
-      <div class="dialog-icon" aria-hidden="true">✦</div>
-      <p class="eyebrow">YOU’RE ALL SET</p>
-      <h2 id="dialog-title">A great start.</h2>
-      <p>
-        Your loading screen is ready.<br />The quiz adventure is coming next.
+      <div class="dialog-icon" aria-hidden="true"><svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2c2.9 1.8 4.6 4.9 4.6 8.2v3.1l-2.3 2.3H9.7l-2.3-2.3v-3.1c0-3.3 1.7-6.4 4.6-8.2Z"/><circle cx="12" cy="10" r="1.7"/><path d="M9.6 16.9 8 20.6l3-1.3M14.4 16.9l1.6 3.7-3-1.3"/></svg></div>
+      <p class="eyebrow">YOUR NEXT QUEST</p>
+      <h2 id="dialog-title">
+        Adventure awaits, <span id="dialog-name">Challenger</span>!
+      </h2>
+      <p id="dialog-summary">
+        You’re all set. The quiz adventure map is coming in the next screen —
+        great job warming up!
       </p>
       <button id="close-dialog" class="continue" type="button">
-        BACK TO START <span aria-hidden="true">↗</span>
+        BACK TO WELCOME <span aria-hidden="true">↗</span>
       </button>
     </dialog>
     <noscript

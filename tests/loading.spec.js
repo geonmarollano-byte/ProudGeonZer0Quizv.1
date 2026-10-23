@@ -41,9 +41,16 @@ for (const viewport of [
     expect(dimensions.contentWidth).toBeLessThanOrEqual(dimensions.width);
     expect(dimensions.contentHeight).toBeLessThanOrEqual(dimensions.height);
     await page.getByRole("button", { name: "CONTINUE" }).click();
+    await expect(page.locator("#welcome-screen")).toBeVisible();
+    await expect(page.locator("#loading-screen")).toBeHidden();
+    await expect(
+      page.getByRole("heading", { name: /Kumusta/ }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: /PROCEED/ }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
-    await page.getByRole("button", { name: "BACK TO START" }).click();
+    await page.getByRole("button", { name: "BACK TO WELCOME" }).click();
     await expect(page.getByRole("dialog")).toBeHidden();
+    await expect(page.locator("#welcome-screen")).toBeVisible();
     expect(errors).toEqual([]);
     expect(remote).toEqual([]);
     if (viewport.width === 393)
@@ -85,10 +92,13 @@ test("reduced motion and keyboard navigation", async ({ page }) => {
   });
   await page.getByRole("button", { name: "CONTINUE" }).focus();
   await page.keyboard.press("Enter");
+  await expect(page.locator("#welcome-screen")).toBeVisible();
+  await page.getByRole("button", { name: /PROCEED/ }).focus();
+  await page.keyboard.press("Enter");
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toBeHidden();
-  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeFocused();
+  await expect(page.getByRole("button", { name: /PROCEED/ })).toBeFocused();
 });
 
 test("dialog padding does not dismiss it but backdrop does", async ({
@@ -97,6 +107,7 @@ test("dialog padding does not dismiss it but backdrop does", async ({
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await page.getByRole("button", { name: "CONTINUE" }).click();
+  await page.getByRole("button", { name: /PROCEED/ }).click();
   const modal = page.getByRole("dialog");
   const box = await modal.boundingBox();
   await page.mouse.click(box.x + 10, box.y + 10);
@@ -145,6 +156,8 @@ for (const mode of ["unsupported", "rejected"]) {
     await page.getByRole("button", { name: "Enter fullscreen" }).click();
     await expect(page.locator("#fullscreen-note")).not.toBeEmpty();
     await page.getByRole("button", { name: "CONTINUE" }).click();
+    await expect(page.locator("#welcome-screen")).toBeVisible();
+    await page.getByRole("button", { name: /PROCEED/ }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
   });
 }
