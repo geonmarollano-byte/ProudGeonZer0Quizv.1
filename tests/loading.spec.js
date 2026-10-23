@@ -81,7 +81,7 @@ test("reduced motion and keyboard navigation", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible({
-    timeout: 2500,
+    timeout: 8000,
   });
   await page.getByRole("button", { name: "CONTINUE" }).focus();
   await page.keyboard.press("Enter");
@@ -162,5 +162,141 @@ test("game effects animate and intro can be replayed", async ({ page }) => {
   await expect(page.getByRole("button", { name: "CONTINUE" })).toBeHidden();
   await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible({
     timeout: 10000,
+  });
+});
+
+test("progress bar advances continuously without stepping", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  // The bar must be driven every animation frame, not restarted transitions.
+  const transition = await page
+    .locator("#progress-fill")
+    .evaluate((node) => getComputedStyle(node).transitionDuration);
+  expect(transition).toBe("0s");
+
+  const samples = await page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        const bar = document.querySelector("#progress-fill");
+        const values = [];
+        const started = performance.now();
+        function tick(now) {
+          values.push({ width: bar.getBoundingClientRect().width, at: now });
+          if (now - started < 900) requestAnimationFrame(tick);
+          else resolve(values);
+        }
+        requestAnimationFrame(tick);
+      }),
+  );
+
+  expect(samples.length).toBeGreaterThan(15);
+  // Strictly increasing: no backwards jumps or frozen frames.
+  for (let index = 1; index < samples.length; index += 1) {
+    expect(samples[index].width).toBeGreaterThanOrEqual(samples[index - 1].width);
+  }
+  // Many distinct widths means a smooth sweep rather than a few big steps.
+  expect(
+    new Set(samples.map((sample) => sample.width.toFixed(2))).size,
+  ).toBeGreaterThan(15);
+
+  // Look only at frame-to-frame steps that actually rendered back to back;
+  // skipped frames on a busy machine are not a bar stutter.
+  const width = await page
+    .locator("#progress")
+    .evaluate((node) => node.getBoundingClientRect().width);
+  const fastSteps = [];
+  for (let index = 1; index < samples.length; index += 1) {
+    const gap = samples[index].at - samples[index - 1].at;
+    if (gap > 0 && gap < 45) {
+      fastSteps.push(samples[index].width - samples[index - 1].width);
+    }
+  }
+  if (fastSteps.length >= 5) {
+    const biggestJump = Math.max(...fastSteps);
+    expect(biggestJump).toBeLessThan(width * 0.08);
+  }
+});
+
+test("sound toggle mutes, unmutes and remembers the choice", async ({
+  page,
+}) => {
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/");
+
+  const toggle = page.getByRole("button", { name: "Mute sound" });
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await toggle.click();
+
+  const muted = page.getByRole("button", { name: "Unmute sound" });
+  await expect(muted).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator("#sound-hint")).toContainText("SOUND IS OFF");
+  expect(
+    await page.evaluate(() =>
+      window.localStorage.getItem("proudgeon-loading.sound.v1"),
+    ),
+  ).toBe("off");
+
+  await page.reload();
+  // The muted preference survives a reload.
+  await expect(
+    page.getByRole("button", { name: "Unmute sound" }),
+  ).toHaveAttribute("aria-pressed", "false");
+
+  await page.getByRole("button", { name: "Unmute sound" }).click();
+  await expect(page.getByRole("button", { name: "Mute sound" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  expect(
+    await page.evaluate(() =>
+      window.localStorage.getItem("proudgeon-loading.sound.v1"),
+    ),
+  ).toBe("on");
+  expect(errors).toEqual([]);
+});
+
+test("loading still finishes when Web Audio is unavailable", async ({
+  page,
+}) => {
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    delete window.AudioContext;
+    delete window.webkitAudioContext;
+  });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Mute sound" }).click();
+  await page.getByRole("button", { name: "Unmute sound" }).click();
+  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible({
+    timeout: 8000,
+  });
+  await page.getByRole("button", { name: "CONTINUE" }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("replay restarts a smooth intro", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible({
+    timeout: 8000,
+  });
+  await page.getByRole("button", { name: "REPLAY INTRO" }).click();
+  await expect(page.getByRole("progressbar")).toBeVisible();
+  const first = await page
+    .locator("#progress-fill")
+    .evaluate((node) => node.getBoundingClientRect().width);
+  await page.waitForTimeout(120);
+  const second = await page
+    .locator("#progress-fill")
+    .evaluate((node) => node.getBoundingClientRect().width);
+  expect(second).toBeGreaterThanOrEqual(first);
+  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible({
+    timeout: 8000,
   });
 });

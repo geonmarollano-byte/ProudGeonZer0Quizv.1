@@ -28,23 +28,50 @@
           PROUDGEON <span class="studio-divider">/</span> PLAY. GROW.
           REPEAT.</span
         >
-        <button
-          class="fullscreen"
-          id="fullscreen"
-          type="button"
-          aria-label="Enter fullscreen"
-          title="Toggle fullscreen"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            aria-hidden="true"
+        <div class="topbar-actions">
+          <button
+            class="icon-button sound-toggle"
+            id="sound-toggle"
+            type="button"
+            aria-label="Mute sound"
+            aria-pressed="true"
+            title="Toggle sound"
           >
-            <path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5" />
-          </svg>
-        </button>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M4 9.5h3L12 5.6v12.8L7 14.5H4z"
+                fill="currentColor"
+                fill-opacity=".18"
+              />
+              <path class="sound-waves" d="M15.4 9.4a3.6 3.6 0 0 1 0 5.2M18 6.8a7.2 7.2 0 0 1 0 10.4" />
+              <path class="sound-mute" d="m15.4 9.6 4.2 4.8M19.6 9.6l-4.2 4.8" />
+            </svg>
+          </button>
+          <button
+            class="icon-button fullscreen"
+            id="fullscreen"
+            type="button"
+            aria-label="Enter fullscreen"
+            title="Toggle fullscreen"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              aria-hidden="true"
+            >
+              <path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5" />
+            </svg>
+          </button>
+        </div>
       </header>
 
       <section class="identity" aria-labelledby="game-title">
@@ -116,6 +143,7 @@
             <span class="status-dot"></span> A SHARPER MIND IS JUST A MOMENT
             AWAY
           </p>
+          <p id="sound-hint" class="sound-hint" role="status"></p>
         </div>
         <div id="ready-panel" hidden>
           <button id="continue" class="continue" type="button">

@@ -80,23 +80,48 @@ button {
   color: #414957;
   margin: 0 7px;
 }
-.fullscreen {
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.icon-button {
   display: grid;
   place-items: center;
   width: 38px;
   height: 38px;
+  padding: 0;
   border: 1px solid #ffffff16;
   border-radius: 8px;
   background: #ffffff03;
   color: #a0a8b2;
   cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
 }
-.fullscreen svg {
+.icon-button svg {
   width: 18px;
 }
-.fullscreen:hover {
+.icon-button:hover {
   color: var(--gold);
   border-color: #e9bb7166;
+}
+.icon-button:active {
+  transform: scale(0.96);
+}
+.sound-toggle[aria-pressed="false"] {
+  color: #6f7a89;
+}
+.sound-mute {
+  display: none;
+}
+.sound-toggle[aria-pressed="false"] .sound-mute {
+  display: inline;
+}
+.sound-toggle[aria-pressed="false"] .sound-waves {
+  display: none;
 }
 .identity {
   text-align: center;
@@ -265,6 +290,7 @@ h1 > span {
   color: #a29277;
 }
 .progress-track {
+  position: relative;
   height: 4px;
   background: #ffffff0d;
   border-radius: 5px;
@@ -276,7 +302,9 @@ h1 > span {
   background: linear-gradient(90deg, #977345, var(--gold));
   box-shadow: 0 0 15px #e9bb7144;
   border-radius: 5px;
-  transition: width 0.12s linear;
+  /* Width is advanced once per animation frame by app.js.
+     A CSS transition here would restart on every frame and stutter. */
+  will-change: width;
 }
 .loading-note {
   display: flex;
@@ -289,6 +317,18 @@ h1 > span {
   margin: 17px 0 0;
   line-height: 1.5;
   text-align: center;
+}
+.sound-hint {
+  margin: 9px 0 0;
+  text-align: center;
+  font-size: 7px;
+  letter-spacing: 1.5px;
+  line-height: 1.6;
+  color: #9b8a6d;
+  animation: appear 0.4s ease-out;
+}
+.sound-hint:empty {
+  display: none;
 }
 .status-dot,
 .offline-dot {
@@ -459,9 +499,12 @@ dialog p:not(.eyebrow) {
   .studio-divider {
     margin: 0 3px;
   }
-  .fullscreen {
+  .icon-button {
     width: 34px;
     height: 34px;
+  }
+  .topbar-actions {
+    gap: 7px;
   }
   .emblem-wrap {
     transform: scale(0.88);

@@ -19,9 +19,10 @@ The page fills the available viewport, including Android safe areas. Use the top
 - Floating emblem, rotating energy rings, rising particles, and a shimmering progress bar.
 - Replay Intro button to watch the 1–100% sequence again after completion.
 - Small uppercase motivational quote with a navy/gold visual theme.
-- Time-based 1–100% intro (about 3.8 seconds), replaced by Continue.
+- Frame-driven 1–100% intro (about 3.6 seconds) that sweeps continuously instead of stepping, replaced by Continue.
 - Reduced-motion preference support (shortened intro).
 - Keyboard-accessible controls, progress semantics, and completion announcement.
+- Synthesized intro sound (Web Audio, no audio files): a rising ambient pad, soft progress ticks and a completion chime. Browsers require a first tap or keypress, so the page shows “TAP ANYWHERE TO ENABLE SOUND” until audio is unlocked. The speaker button mutes/unmutes and the choice is remembered.
 - Continue opens a dismissible placeholder; gameplay is intentionally not implemented.
 - The former Welcome and Quest Hub screens have been removed for now, so the game is back to this loading screen only. Player data already saved in `localStorage` is left untouched.
 - Responsive portrait/landscape layouts with no external assets.
