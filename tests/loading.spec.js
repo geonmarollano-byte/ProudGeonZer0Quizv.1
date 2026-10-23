@@ -41,9 +41,8 @@ for (const viewport of [
     expect(dimensions.contentWidth).toBeLessThanOrEqual(dimensions.width);
     expect(dimensions.contentHeight).toBeLessThanOrEqual(dimensions.height);
     await page.getByRole("button", { name: "CONTINUE" }).click();
-    await expect(page.getByRole("dialog")).toBeVisible();
-    await page.getByRole("button", { name: "BACK TO START" }).click();
-    await expect(page.getByRole("dialog")).toBeHidden();
+    await expect(page.locator("#welcome-screen")).toBeVisible();
+    await expect(page.locator("#loading-screen")).toBeHidden();
     expect(errors).toEqual([]);
     expect(remote).toEqual([]);
     if (viewport.width === 393)
@@ -85,24 +84,10 @@ test("reduced motion and keyboard navigation", async ({ page }) => {
   });
   await page.getByRole("button", { name: "CONTINUE" }).focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).toBeHidden();
-  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeFocused();
-});
-
-test("dialog padding does not dismiss it but backdrop does", async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
-  await page.getByRole("button", { name: "CONTINUE" }).click();
-  const modal = page.getByRole("dialog");
-  const box = await modal.boundingBox();
-  await page.mouse.click(box.x + 10, box.y + 10);
-  await expect(modal).toBeVisible();
-  await page.mouse.click(5, 5);
-  await expect(modal).toBeHidden();
+  await expect(page.locator("#welcome-screen")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "START YOUR ADVENTURE" }),
+  ).toBeFocused();
 });
 
 test("offline launch supports query strings and index.html", async ({
@@ -145,7 +130,10 @@ for (const mode of ["unsupported", "rejected"]) {
     await page.getByRole("button", { name: "Enter fullscreen" }).click();
     await expect(page.locator("#fullscreen-note")).not.toBeEmpty();
     await page.getByRole("button", { name: "CONTINUE" }).click();
-    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.locator("#welcome-screen")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "START YOUR ADVENTURE" }),
+    ).toBeVisible();
   });
 }
 
@@ -226,7 +214,7 @@ test("sound toggle mutes, unmutes and remembers the choice", async ({
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
 
-  const toggle = page.getByRole("button", { name: "Mute sound" });
+  const toggle = page.getByRole("button", { name: "Mute sound" }).first();
   await expect(toggle).toHaveAttribute("aria-pressed", "true");
   await toggle.click();
 
@@ -234,10 +222,11 @@ test("sound toggle mutes, unmutes and remembers the choice", async ({
   await expect(muted).toHaveAttribute("aria-pressed", "false");
   await expect(page.locator("#sound-hint")).toContainText("SOUND IS OFF");
   expect(
-    await page.evaluate(() =>
-      window.localStorage.getItem("proudgeon-loading.sound.v1"),
+    await page.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem("proudgeonzer0quiz.player.v1")).sound,
     ),
-  ).toBe("off");
+  ).toBe(false);
 
   await page.reload();
   // The muted preference survives a reload.
@@ -251,10 +240,11 @@ test("sound toggle mutes, unmutes and remembers the choice", async ({
     "true",
   );
   expect(
-    await page.evaluate(() =>
-      window.localStorage.getItem("proudgeon-loading.sound.v1"),
+    await page.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem("proudgeonzer0quiz.player.v1")).sound,
     ),
-  ).toBe("on");
+  ).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -276,7 +266,7 @@ test("loading still finishes when Web Audio is unavailable", async ({
     timeout: 8000,
   });
   await page.getByRole("button", { name: "CONTINUE" }).click();
-  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.locator("#welcome-screen")).toBeVisible();
   expect(errors).toEqual([]);
 });
 
