@@ -1,5 +1,5 @@
 "use strict";
-const CACHE = "proudgeon-quiz-v5";
+const CACHE = "proudgeon-loading-v6";
 const ASSETS = ["./", "./index.html", "./style.css", "./app.js", "./logo.svg"];
 self.addEventListener("install", (event) => {
   event.waitUntil(
