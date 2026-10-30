@@ -1,0 +1,9 @@
+{
+  "endpoint": "",
+  "notes": [
+    "SECRET-FREE configuration file. Never put a password, password hash, API key or token in this file or anywhere else in this repository.",
+    "Leave \"endpoint\" empty to keep the Admin Login screen in its 'authentication not configured' state (it will refuse to verify anything and will never fake a successful login).",
+    "To enable real sign-in, deploy a server-side authentication endpoint and set \"endpoint\" to its URL (https:// only, or a same-origin path such as \"/api/admin/login\").",
+    "Contract: POST JSON { username, password } with credentials included. Respond 200 with { \"authenticated\": true } on success, 401 with { \"authenticated\": false } on invalid credentials. The server must hash the stored password (Argon2id, scrypt or bcrypt) and set an HttpOnly, Secure, SameSite session cookie on success."
+  ]
+}
