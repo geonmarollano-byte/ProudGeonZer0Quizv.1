@@ -76,7 +76,7 @@ The page fills the available viewport, including Android safe areas. Use the top
 - Responsive portrait/landscape layouts with no external assets.
 - Service worker caching for offline revisits after the first successful visit on HTTPS or localhost. Direct file use works without a service worker. Clearing browser site data removes the offline cache.
 
-The percentage represents the local intro sequence, not a network download. Update the cache version in `sw.js` when changing cached assets for a deployment (`proudgeon-loading-v11` for Upgrade 2).
+The percentage represents the local intro sequence, not a network download. Update the cache version in `sw.js` when changing cached assets for a deployment (`proudgeon-loading-v12`). The worker fetches network-first and falls back to the cache when offline, so a new deployment is picked up on the next page load instead of after two reloads.
 
 ## Login behaviour
 
