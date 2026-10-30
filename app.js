@@ -8,6 +8,8 @@ const fullscreenButton = document.querySelector("#fullscreen");
 const fullscreenNote = document.querySelector("#fullscreen-note");
 const soundToggle = document.querySelector("#sound-toggle");
 const soundHint = document.querySelector("#sound-hint");
+const loadingPanel = document.querySelector("#loading-panel");
+const readyPanel = document.querySelector("#ready-panel");
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 /* ================= SOUND ================= */
@@ -237,6 +239,8 @@ function startIntro() {
   introDone = false;
   announcement.textContent = "";
   setProgress(1);
+  loadingPanel.hidden = false;
+  readyPanel.hidden = true;
 
   const duration = reduceMotion.matches ? REDUCED_INTRO_MS : INTRO_MS;
   const milestones = duration < 1500 ? 4 : 10;
@@ -287,9 +291,15 @@ function completeIntro() {
   loadingActive = false;
   stopAmbience(0.7);
   playChime();
-  // The loading screen is the only interface: 100% simply holds in place.
-  announcement.textContent = "Loading complete.";
+  announcement.textContent = "Loading complete. Continue is ready.";
   updateSoundHint();
+  // Let 100% paint once, then swap the progress bar for the Continue button.
+  window.setTimeout(() => {
+    // Reserve the bar's exact height so nothing on the screen shifts.
+    readyPanel.style.minHeight = `${loadingPanel.getBoundingClientRect().height}px`;
+    loadingPanel.hidden = true;
+    readyPanel.hidden = false;
+  }, 180);
 }
 
 updateSoundHint();

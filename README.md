@@ -31,7 +31,7 @@ The page fills the available viewport, including Android safe areas. Use the top
 - Responsive portrait/landscape layouts with no external assets.
 - Service worker caching for offline revisits after the first successful visit on HTTPS or localhost. Direct file use works without a service worker. Clearing browser site data removes the offline cache.
 
-The percentage represents the local intro sequence, not a network download. Update the cache version in `sw.js` when changing cached assets for a deployment (`proudgeon-loading-v13`).
+The percentage represents the local intro sequence, not a network download. Update the cache version in `sw.js` when changing cached assets for a deployment (`proudgeon-loading-v14`).
 
 ## Removed screens
 
@@ -45,7 +45,9 @@ The Welcome screen and the Admin Login screen that were added in Upgrade 2 have
 been removed again at the project owner's request, together with the
 `auth-config.json` integration point and the admin authentication module. The
 loading screen is once more the only user-facing screen: it runs 1–100% and
-then holds in place without navigating anywhere. Player data that may exist in
+then holds in place without navigating anywhere: at 100% the progress bar is
+replaced by a single **CONTINUE** button, which is the only addition to the
+original screen. Player data that may exist in
 `localStorage` from earlier builds is left untouched (the app never reads or
 clears it).
 

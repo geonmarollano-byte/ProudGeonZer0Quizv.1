@@ -32,9 +32,10 @@ for (const viewport of [
       "100",
       { timeout: 30000 },
     );
-    // The loading screen is the only interface: it stays on screen at 100%.
-    await expect(page.getByRole("progressbar")).toBeVisible();
-    await expect(page.getByRole("button")).toHaveCount(2);
+    // At 100% the progress bar is replaced by the Continue button.
+    await expect(page.getByRole("button", { name: /CONTINUE/ })).toBeVisible();
+    await expect(page.getByRole("progressbar")).toBeHidden();
+    await expect(page.getByRole("button")).toHaveCount(3);
     await expect(page.getByRole("dialog")).toHaveCount(0);
     const dimensions = await page.evaluate(() => ({
       width: innerWidth,
@@ -47,7 +48,8 @@ for (const viewport of [
     // Nothing navigates away once loading reaches 100%.
     await page.waitForTimeout(600);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expect(page.getByRole("progressbar")).toBeVisible();
+    await expect(page.getByRole("button", { name: /CONTINUE/ })).toBeVisible();
+    await expect(page.getByRole("progressbar")).toBeHidden();
     expect(errors).toEqual([]);
     expect(remote).toEqual([]);
     if (viewport.width === 393)
@@ -70,12 +72,16 @@ test("only the loading screen exists in the document", async ({ page }) => {
       (node) => node.className,
     ),
     dialogs: document.querySelectorAll("dialog").length,
-    panels: document.querySelectorAll("[id$='-panel']").length,
+    panels: [...document.querySelectorAll("[id$='-panel']")].map(
+      (node) => node.id,
+    ),
     navs: document.querySelectorAll("nav").length,
   }));
+  // Still a single screen: the loading panel plus the Continue panel that
+  // replaces it once the bar reaches 100%.
   expect(structure.sections).toEqual(["identity", "launch"]);
   expect(structure.dialogs).toBe(0);
-  expect(structure.panels).toBe(1);
+  expect(structure.panels).toEqual(["loading-panel", "ready-panel"]);
   expect(structure.navs).toBe(0);
 });
 
@@ -92,21 +98,17 @@ test("cached app works with network offline", async ({ page, context }) => {
   });
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole("progressbar")).toHaveAttribute(
-    "aria-valuenow",
-    "100",
-    { timeout: 30000 },
-  );
+  await expect(page.getByRole("button", { name: /CONTINUE/ })).toBeVisible({
+    timeout: 30000,
+  });
 });
 
 test("reduced motion shortens the intro", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await expect(page.locator("#progress")).toHaveAttribute(
-    "aria-valuenow",
-    "100",
-    { timeout: 8000 },
-  );
+  await expect(page.getByRole("button", { name: /CONTINUE/ })).toBeVisible({
+    timeout: 8000,
+  });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
@@ -128,11 +130,9 @@ test("offline launch supports query strings and index.html", async ({
   await context.setOffline(true);
   for (const path of ["/?source=shared", "/index.html?source=shared"]) {
     await page.goto(path);
-    await expect(page.locator("#progress")).toHaveAttribute(
-      "aria-valuenow",
-      "100",
-      { timeout: 10000 },
-    );
+    await expect(page.getByRole("button", { name: /CONTINUE/ })).toBeVisible({
+      timeout: 10000,
+    });
   }
 });
 
@@ -272,10 +272,8 @@ test("loading still finishes when Web Audio is unavailable", async ({
 
   await page.getByRole("button", { name: "Mute sound" }).click();
   await page.getByRole("button", { name: "Unmute sound" }).click();
-  await expect(page.locator("#progress")).toHaveAttribute(
-    "aria-valuenow",
-    "100",
-    { timeout: 8000 },
-  );
+  await expect(page.getByRole("button", { name: /CONTINUE/ })).toBeVisible({
+    timeout: 8000,
+  });
   expect(errors).toEqual([]);
 });
