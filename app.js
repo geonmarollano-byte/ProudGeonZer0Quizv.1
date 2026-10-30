@@ -10,6 +10,8 @@ const soundToggle = document.querySelector("#sound-toggle");
 const soundHint = document.querySelector("#sound-hint");
 const loadingPanel = document.querySelector("#loading-panel");
 const readyPanel = document.querySelector("#ready-panel");
+const loadingScreen = document.querySelector("#screen-loading");
+const welcomeScreen = document.querySelector("#screen-welcome");
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 /* ================= SOUND ================= */
@@ -341,6 +343,281 @@ document.addEventListener("fullscreenchange", () => {
   fullscreenButton.setAttribute("aria-label", label);
   fullscreenButton.title = label;
 });
+
+/* ============================================================
+   UPGRADE 2 — WELCOME SCREEN + ADMIN LOGIN + PLAYER INFO PANEL
+   ============================================================
+   The loading screen stays the entry point. The Welcome screen only appears
+   when CONTINUE is pressed, and BACK returns to the completed loading screen.
+   No other screen, dashboard or registration flow exists. */
+
+const ADMIN_ERROR_MESSAGE =
+  "Please enter your correct password or username before you can access.";
+const ADMIN_SUCCESS_MESSAGE = "Your password is correct!";
+
+const continueButton = document.querySelector("#continue");
+const openAdminButton = document.querySelector("#open-admin");
+const openPlayerButton = document.querySelector("#open-player");
+const backToLoadingButton = document.querySelector("#back-to-loading");
+
+const adminPanel = document.querySelector("#admin-panel");
+const adminForm = document.querySelector("#admin-form");
+const adminUsername = document.querySelector("#admin-username");
+const adminPassword = document.querySelector("#admin-password");
+const adminToggle = document.querySelector("#password-toggle");
+const adminSubmit = document.querySelector("#admin-submit");
+const adminMessage = document.querySelector("#admin-message");
+const adminBack = document.querySelector("#admin-back");
+
+const constructionPanel = document.querySelector("#construction-panel");
+const constructionClose = document.querySelector("#construction-close");
+
+let adminChecking = false;
+let adminVerified = false;
+/* Increments on every attempt and every close, so a verification that is
+   still in flight can never write into a panel the user has left. */
+let adminAttempt = 0;
+
+/* ---------- Screen switching ---------- */
+function showScreen(target) {
+  const showWelcome = target === "welcome";
+  loadingScreen.hidden = showWelcome;
+  loadingScreen.classList.toggle("is-active", !showWelcome);
+  welcomeScreen.hidden = !showWelcome;
+  welcomeScreen.classList.toggle("is-active", showWelcome);
+  document.body.dataset.screen = showWelcome ? "welcome" : "loading";
+  const heading = welcomeScreen.querySelector("h1");
+  if (showWelcome && heading) heading.focus({ preventScroll: true });
+}
+
+/* CONTINUE is the only way into the Welcome screen. */
+continueButton.addEventListener("click", () => {
+  showScreen("welcome");
+});
+
+/* BACK returns to the existing loading screen, still showing CONTINUE. */
+backToLoadingButton.addEventListener("click", () => {
+  closeAdminPanel();
+  if (constructionPanel.open) constructionPanel.close();
+  showScreen("loading");
+  continueButton.focus({ preventScroll: true });
+});
+
+/* ---------- Admin login panel ---------- */
+function clearAdminMessage() {
+  adminMessage.textContent = "";
+  delete adminMessage.dataset.tone;
+}
+
+function setAdminMessage(text, tone) {
+  adminMessage.textContent = text;
+  adminMessage.dataset.tone = tone;
+}
+
+function lockAdminForm(locked) {
+  adminChecking = locked;
+  adminSubmit.disabled = locked || adminVerified;
+  adminSubmit.textContent = locked ? "VERIFYING…" : "VERIFY ADMIN LOGIN";
+  adminUsername.disabled = locked || adminVerified;
+  adminPassword.disabled = locked || adminVerified;
+  adminToggle.disabled = locked || adminVerified;
+}
+
+function resetAdminForm() {
+  adminPassword.value = "";
+  adminPassword.type = "password";
+  adminToggle.setAttribute("aria-pressed", "false");
+  adminToggle.setAttribute("aria-label", "Show password");
+  adminToggle.title = "Show password";
+  clearAdminMessage();
+}
+
+function closeAdminPanel() {
+  adminAttempt += 1;
+  adminChecking = false;
+  if (adminPanel.open) adminPanel.close();
+}
+
+function openAdminPanel() {
+  if (!adminVerified) {
+    adminUsername.disabled = false;
+    adminPassword.disabled = false;
+    adminToggle.disabled = false;
+    adminSubmit.disabled = false;
+    adminSubmit.textContent = "VERIFY ADMIN LOGIN";
+  }
+  if (typeof adminPanel.showModal === "function") adminPanel.showModal();
+  else adminPanel.setAttribute("open", "");
+  if (adminVerified) adminSubmit.focus({ preventScroll: true });
+  else adminUsername.focus({ preventScroll: true });
+}
+
+openAdminButton.addEventListener("click", openAdminPanel);
+
+adminBack.addEventListener("click", () => {
+  // Closing always works, even mid-verification; the in-flight result is
+  // discarded by the attempt token inside closeAdminPanel().
+  if (!adminVerified) resetAdminForm();
+  closeAdminPanel();
+  openAdminButton.focus({ preventScroll: true });
+});
+
+adminPanel.addEventListener("close", () => {
+  if (!adminVerified) resetAdminForm();
+});
+
+adminToggle.addEventListener("click", () => {
+  const revealed = adminToggle.getAttribute("aria-pressed") === "true";
+  adminPassword.type = revealed ? "password" : "text";
+  adminToggle.setAttribute("aria-pressed", String(!revealed));
+  const label = revealed ? "Show password" : "Hide password";
+  adminToggle.setAttribute("aria-label", label);
+  adminToggle.title = label;
+  adminPassword.focus({ preventScroll: true });
+});
+
+/* Field edits clear the previous outcome so the message never goes stale. */
+[adminUsername, adminPassword].forEach((input) => {
+  input.addEventListener("input", () => {
+    if (!adminChecking && !adminVerified) clearAdminMessage();
+  });
+});
+
+/* ---------- Credential verification ---------- */
+function base64ToBytes(value) {
+  const binary = atob(value);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return bytes;
+}
+
+function bytesToBase64(bytes) {
+  let binary = "";
+  const view = new Uint8Array(bytes);
+  for (let index = 0; index < view.length; index += 1) {
+    binary += String.fromCharCode(view[index]);
+  }
+  return btoa(binary);
+}
+
+/* Constant-time comparison so the check does not leak how much matched. */
+function equalVerifier(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let index = 0; index < a.length; index += 1) {
+    diff |= a.charCodeAt(index) ^ b.charCodeAt(index);
+  }
+  return diff === 0;
+}
+
+/* Compares a PBKDF2 verifier derived from the typed credentials against the
+   one-way verifier in auth-config.js. Nothing is stored, and neither the
+   username nor the password is present in the source. */
+async function verifyAdminCredentials(username, password) {
+  const config = window.PG_ADMIN_AUTH;
+  const subtle = window.crypto && window.crypto.subtle;
+  if (!config || config.algorithm !== "PBKDF2-SHA256" || !subtle) {
+    return "unavailable";
+  }
+  try {
+    const encoder = new TextEncoder();
+    const keyMaterial = await subtle.importKey(
+      "raw",
+      encoder.encode(`${username}\u0000${password}`),
+      "PBKDF2",
+      false,
+      ["deriveBits"],
+    );
+    const bits = await subtle.deriveBits(
+      {
+        name: "PBKDF2",
+        salt: base64ToBytes(config.salt),
+        iterations: config.iterations,
+        hash: "SHA-256",
+      },
+      keyMaterial,
+      256,
+    );
+    return equalVerifier(bytesToBase64(bits), config.verifier)
+      ? "valid"
+      : "invalid";
+  } catch {
+    return "unavailable";
+  }
+}
+
+adminForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  // Ignore repeat submissions while a check is running or already passed.
+  if (adminChecking || adminVerified) return;
+
+  const username = adminUsername.value.trim();
+  const password = adminPassword.value;
+  clearAdminMessage();
+
+  if (!username || !password) {
+    setAdminMessage(ADMIN_ERROR_MESSAGE, "error");
+    (username ? adminPassword : adminUsername).focus({ preventScroll: true });
+    return;
+  }
+
+  const attempt = ++adminAttempt;
+  lockAdminForm(true);
+  setAdminMessage("Verifying credentials…", "pending");
+  const outcome = await verifyAdminCredentials(username, password);
+  // The panel was closed while this check was running: drop the result.
+  if (attempt !== adminAttempt) return;
+
+  if (outcome === "valid") {
+    adminVerified = true;
+    adminPassword.value = "";
+    adminPassword.type = "password";
+    adminToggle.setAttribute("aria-pressed", "false");
+    adminToggle.setAttribute("aria-label", "Show password");
+    adminToggle.title = "Show password";
+    // Keeps the fields locked so the verified state cannot be resubmitted.
+    lockAdminForm(false);
+    // Stays on this panel: navigation to the Home screen is Upgrade 3.
+    setAdminMessage(ADMIN_SUCCESS_MESSAGE, "success");
+    adminBack.focus({ preventScroll: true });
+    announcement.textContent =
+      "Administrator verified. Your password is correct!";
+    return;
+  }
+
+  lockAdminForm(false);
+
+  if (outcome === "invalid") {
+    setAdminMessage(ADMIN_ERROR_MESSAGE, "error");
+    adminPassword.value = "";
+    adminPassword.focus({ preventScroll: true });
+    return;
+  }
+
+  setAdminMessage(
+    "Verification is unavailable because this page is not running in a secure browser context.",
+    "error",
+  );
+});
+
+/* ---------- Join as a player — information panel only ---------- */
+openPlayerButton.addEventListener("click", () => {
+  if (typeof constructionPanel.showModal === "function") {
+    constructionPanel.showModal();
+  } else {
+    constructionPanel.setAttribute("open", "");
+  }
+  constructionClose.focus({ preventScroll: true });
+});
+
+constructionClose.addEventListener("click", () => {
+  constructionPanel.close();
+  openPlayerButton.focus({ preventScroll: true });
+});
+
+document.body.dataset.screen = "loading";
 
 // Cache the small, dependency-free app for later offline visits.
 if ("serviceWorker" in navigator && window.isSecureContext) {

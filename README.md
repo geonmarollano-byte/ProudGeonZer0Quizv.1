@@ -41,15 +41,55 @@ Achievements, Leaderboard, Settings and dashboard interfaces — plus the old
 “Continue” placeholder dialog and its Replay Intro control — are not part of
 this project.
 
-The Welcome screen and the Admin Login screen that were added in Upgrade 2 have
-been removed again at the project owner's request, together with the
-`auth-config.json` integration point and the admin authentication module. The
-loading screen is once more the only user-facing screen: it runs 1–100% and
-then holds in place without navigating anywhere: at 100% the progress bar is
-replaced by a single **CONTINUE** button, which is the only addition to the
-original screen. Player data that may exist in
-`localStorage` from earlier builds is left untouched (the app never reads or
-clears it).
+The loading screen runs 1–100%, then the progress bar is replaced by a single
+**CONTINUE** button. Nothing else appears until the player presses it.
+
+## Upgrade 2 — Welcome screen and login panels
+
+`loading → CONTINUE → WELCOME BACK PLAYER → (admin panel | player info panel)`
+
+**Welcome screen** — `WELCOME BACK PLAYER`, the subtitle "Welcome to your
+gaming experience.", and exactly three controls: `LOGIN AS AN ADMIN`,
+`JOIN AS A PLAYER` and `< BACK`. BACK returns to the existing loading screen
+(still on CONTINUE); it does not create a second loading screen.
+
+**Admin Login panel** — a modal over the Welcome screen with `ADMIN LOGIN`,
+"Enter your administrator credentials to continue.", Username and Password
+(placeholder text, masked input, show/hide icon), `VERIFY ADMIN LOGIN` and
+`BACK TO WELCOME SCREEN`.
+
+- Wrong username, wrong password or empty fields → the panel stays open and
+  shows exactly: *"Please enter your correct password or username before you
+  can access."*
+- Correct credentials → the panel stays open and shows exactly:
+  *"Your password is correct!"* The Home screen does not exist yet; wiring this
+  success to a Home screen is Upgrade 3.
+- Repeated submits are ignored while a check is running; closing the panel
+  during a check discards the in-flight result.
+
+**Join as a Player panel** — an information panel only: title
+`UNDER CONSTRUCTION`, the message "Under Contraction Please wait a little
+longer..." and a `CLOSE` button that returns to the Welcome screen. There is no
+player registration, player login or profile of any kind.
+
+## Admin authentication
+
+The administrator username and password are **not** stored in this repository.
+`auth-config.js` holds only a one-way PBKDF2-SHA256 verifier of the pair
+(salt + 210,000 iterations + `username \0 password`); the browser derives the
+same verifier from what is typed and compares it in constant time. Nothing is
+written to `localStorage` or `sessionStorage`.
+
+> **Limitation — read this.** GitHub Pages serves static files, so this check
+> runs entirely in the browser. It stops casual or accidental access, but it is
+> not server-grade authentication: anyone who can read the page can also modify
+> or bypass it, or attack the verifier offline. Do not protect sensitive data
+> with it. When a backend exists, replace `auth-config.js` with an endpoint call
+> (`POST {username, password}` → `200 {authenticated:true}` / `401`, HttpOnly
+> session cookie) and delete the client-side verifier.
+
+To change the credentials, follow the recipe in the comment block at the top of
+`auth-config.js`.
 
 ## Tests
 

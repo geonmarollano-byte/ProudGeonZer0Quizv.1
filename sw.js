@@ -1,8 +1,15 @@
 "use strict";
 
 /* Cache name. Bump it whenever the cached files change. */
-const CACHE = "proudgeon-loading-v14";
-const ASSETS = ["./", "./index.html", "./style.css", "./app.js", "./logo.svg"];
+const CACHE = "proudgeon-loading-v15";
+const ASSETS = [
+  "./",
+  "./index.html",
+  "./style.css",
+  "./app.js",
+  "./auth-config.js",
+  "./logo.svg",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
