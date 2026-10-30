@@ -8,9 +8,6 @@ const fullscreenButton = document.querySelector("#fullscreen");
 const fullscreenNote = document.querySelector("#fullscreen-note");
 const soundToggle = document.querySelector("#sound-toggle");
 const soundHint = document.querySelector("#sound-hint");
-const dialog = document.querySelector("#coming-soon");
-const loadingPanel = document.querySelector("#loading-panel");
-const readyPanel = document.querySelector("#ready-panel");
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 /* ================= SOUND ================= */
@@ -179,10 +176,6 @@ function playChime() {
   });
 }
 
-function playClick() {
-  playTone({ frequency: 620, duration: 0.1, volume: 0.04, type: "sine" });
-}
-
 function updateSoundHint() {
   if (!soundToggle) return;
   soundToggle.setAttribute("aria-pressed", String(soundEnabled));
@@ -242,8 +235,6 @@ function startIntro() {
   window.cancelAnimationFrame(introFrame);
   window.clearTimeout(introWatchdog);
   introDone = false;
-  loadingPanel.hidden = false;
-  readyPanel.hidden = true;
   announcement.textContent = "";
   setProgress(1);
 
@@ -296,25 +287,15 @@ function completeIntro() {
   loadingActive = false;
   stopAmbience(0.7);
   playChime();
-  // Let 100% paint once before swapping in the ready panel.
-  window.setTimeout(() => {
-    loadingPanel.hidden = true;
-    readyPanel.hidden = false;
-    announcement.textContent = "Loading complete. Continue is ready.";
-    updateSoundHint();
-  }, 180);
+  // The loading screen is the only interface: 100% simply holds in place.
+  announcement.textContent = "Loading complete.";
+  updateSoundHint();
 }
 
 updateSoundHint();
 
 if (document.readyState === "complete") startIntro();
 else window.addEventListener("load", startIntro, { once: true });
-
-document.querySelector("#replay").addEventListener("click", () => {
-  unlockAudio();
-  startIntro();
-  document.querySelector("#fullscreen").focus({ preventScroll: true });
-});
 
 /* ================= FULLSCREEN ================= */
 async function enterFullscreen() {
@@ -349,26 +330,6 @@ document.addEventListener("fullscreenchange", () => {
     : "Enter fullscreen";
   fullscreenButton.setAttribute("aria-label", label);
   fullscreenButton.title = label;
-});
-
-/* ================= CONTINUE PLACEHOLDER ================= */
-// Only the loading screen is in scope. Give Continue an honest, reversible endpoint.
-document.querySelector("#continue").addEventListener("click", () => {
-  playClick();
-  dialog.showModal();
-});
-document
-  .querySelector("#close-dialog")
-  .addEventListener("click", () => dialog.close());
-dialog.addEventListener("click", (event) => {
-  // Dialog padding belongs to the dialog too; only dismiss actual backdrop taps.
-  const bounds = dialog.getBoundingClientRect();
-  const outside =
-    event.clientX < bounds.left ||
-    event.clientX > bounds.right ||
-    event.clientY < bounds.top ||
-    event.clientY > bounds.bottom;
-  if (event.target === dialog && outside) dialog.close();
 });
 
 // Cache the small, dependency-free app for later offline visits.

@@ -264,9 +264,8 @@ h1 > span {
 .launch {
   width: min(100%, 430px);
   margin: 48px auto auto;
-  padding: 0 0 30px;
+  padding: 0 0 24px;
   position: relative;
-  min-height: 126px;
 }
 .progress-heading {
   display: flex;
@@ -342,43 +341,6 @@ h1 > span {
 .status-dot {
   opacity: 0.6;
 }
-.continue {
-  width: 100%;
-  height: 49px;
-  background: var(--gold);
-  border: 1px solid #f1cd95;
-  border-radius: 5px;
-  color: #17191c;
-  font-size: 10px;
-  font-weight: bold;
-  letter-spacing: 2px;
-  padding: 0 22px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 25px;
-  transition:
-    background 0.15s,
-    transform 0.15s;
-}
-.continue span {
-  font-size: 21px;
-  font-weight: normal;
-  line-height: 1;
-}
-.continue:hover {
-  background: #f6d39e;
-}
-.continue:active {
-  transform: scale(0.985);
-}
-#ready-panel {
-  animation: appear 0.35s ease-out;
-}
-[hidden] {
-  display: none !important;
-}
 .fullscreen-note {
   text-align: center;
   color: #a4acb8;
@@ -422,38 +384,6 @@ footer > span:first-child {
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
-}
-dialog {
-  width: min(90vw, 400px);
-  background: #131d2b;
-  border: 1px solid #e9bb7133;
-  border-radius: 16px;
-  color: var(--text);
-  text-align: center;
-  padding: 36px 28px;
-  box-shadow: 0 30px 100px #0008;
-}
-dialog::backdrop {
-  background: #050912d9;
-  backdrop-filter: blur(7px);
-}
-.dialog-icon {
-  font-size: 35px;
-  color: var(--gold);
-  margin-bottom: 24px;
-}
-dialog .eyebrow {
-  font-size: 8px;
-}
-dialog h2 {
-  font-size: 32px;
-  margin: 12px 0;
-}
-dialog p:not(.eyebrow) {
-  color: #99a4b3;
-  font-size: 14px;
-  line-height: 1.8;
-  margin-bottom: 26px;
 }
 .no-script {
   position: fixed;
@@ -588,6 +518,97 @@ dialog p:not(.eyebrow) {
     margin-bottom: 15px;
   }
 }
+/* Shorter desktop/tablet windows: tighten the original spacing so the whole
+   loading screen always fits the viewport without scrolling. No element is
+   removed, only the vertical rhythm is compressed. */
+@media (min-width: 601px) and (max-height: 860px) {
+  .identity {
+    padding-top: 12px;
+  }
+  .emblem-wrap {
+    width: 184px;
+    height: 170px;
+    margin-bottom: 16px;
+  }
+  .emblem {
+    width: 112px;
+    height: 124px;
+  }
+  .orbit {
+    width: 148px;
+    height: 148px;
+    top: 6px;
+  }
+  .orbit-two {
+    width: 172px;
+    height: 172px;
+    top: -5px;
+  }
+  .emblem-caption {
+    bottom: -6px;
+  }
+  .eyebrow {
+    margin-bottom: 14px;
+  }
+  .title-rule {
+    margin: 17px 0 13px;
+  }
+  .quote-mark {
+    font-size: 25px;
+    height: 17px;
+  }
+  .quote p {
+    margin: 6px 12px;
+  }
+  .launch {
+    margin-top: 30px;
+    padding-bottom: 18px;
+  }
+  footer {
+    padding-top: 14px;
+  }
+}
+@media (min-width: 601px) and (max-height: 660px) {
+  .identity {
+    padding-top: 6px;
+  }
+  .emblem-wrap {
+    height: 132px;
+    width: 150px;
+    margin-bottom: 18px;
+  }
+  .emblem {
+    width: 86px;
+    height: 96px;
+  }
+  .orbit {
+    width: 112px;
+    height: 112px;
+    top: 6px;
+  }
+  .orbit-two {
+    width: 132px;
+    height: 132px;
+    top: -2px;
+  }
+  .emblem-caption {
+    font-size: 6px;
+    bottom: 0;
+  }
+  .title-rule {
+    margin: 13px 0 9px;
+  }
+  .quote-mark {
+    display: none;
+  }
+  .launch {
+    margin-top: 20px;
+    padding-bottom: 12px;
+  }
+  footer {
+    padding-top: 10px;
+  }
+}
 @media (max-height: 500px) and (min-width: 601px) {
   .screen {
     padding: 16px 5%;
@@ -614,7 +635,6 @@ dialog p:not(.eyebrow) {
   .launch {
     margin-top: 22px;
     padding-bottom: 15px;
-    min-height: 100px;
   }
   footer {
     padding-top: 12px;
@@ -682,7 +702,6 @@ dialog p:not(.eyebrow) {
   }
   .launch {
     margin-top: 24px;
-    min-height: 102px;
     padding-bottom: 18px;
   }
   footer {
@@ -762,20 +781,6 @@ dialog p:not(.eyebrow) {
   background: linear-gradient(90deg, transparent, #fff9, transparent);
   animation: loading-sweep 1.2s linear infinite;
 }
-.replay {
-  display: block;
-  margin: 10px auto 0;
-  border: 0;
-  background: transparent;
-  color: #b8a17d;
-  font-size: 8px;
-  letter-spacing: 1.5px;
-  cursor: pointer;
-  padding: 5px 10px;
-}
-.replay:hover {
-  color: #ffe1a8;
-}
 @keyframes energy-spin {
   to {
     transform: rotate(360deg);
@@ -824,5 +829,65 @@ dialog p:not(.eyebrow) {
 @media (prefers-reduced-motion: reduce) {
   .game-atmosphere {
     display: none;
+  }
+}
+
+/* Very short phones (e.g. 320x480): keep the same loading screen visible in a
+   single viewport without scrolling. */
+@media (max-width: 600px) and (max-height: 540px) {
+  .screen {
+    padding-top: 12px;
+    padding-bottom: 10px;
+  }
+  .identity {
+    padding-top: 6px;
+  }
+  .emblem-wrap {
+    height: 92px;
+    margin-bottom: 10px;
+  }
+  .emblem {
+    width: 64px;
+    height: 72px;
+  }
+  .orbit {
+    width: 82px;
+    height: 82px;
+    top: 2px;
+  }
+  .orbit-two {
+    width: 96px;
+    height: 96px;
+    top: -5px;
+  }
+  .emblem-caption {
+    display: none;
+  }
+  .spark-one {
+    top: 6px;
+    right: 46px;
+  }
+  .spark-two {
+    bottom: 18px;
+    left: 46px;
+  }
+  h1 {
+    font-size: clamp(24px, 8vw, 34px);
+  }
+  .title-rule {
+    margin: 10px 0 6px;
+  }
+  .quote-mark {
+    display: none;
+  }
+  .quote p {
+    margin: 4px 0;
+  }
+  .launch {
+    margin-top: 14px;
+    padding-bottom: 10px;
+  }
+  footer {
+    padding-top: 8px;
   }
 }

@@ -2,12 +2,15 @@ const { test, expect } = require("@playwright/test");
 
 for (const viewport of [
   { width: 1440, height: 900 },
+  { width: 1280, height: 800 },
+  { width: 800, height: 600 },
   { width: 393, height: 851 },
+  { width: 320, height: 480 },
   { width: 360, height: 640 },
   { width: 320, height: 568 },
   { width: 851, height: 393 },
 ]) {
-  test(`loading and continue at ${viewport.width}x${viewport.height}`, async ({
+  test(`loading screen at ${viewport.width}x${viewport.height}`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
@@ -24,14 +27,15 @@ for (const viewport of [
     );
     await expect(page.getByRole("progressbar")).toBeVisible();
     await expect(page.locator("#percentage")).not.toHaveText("0");
-    await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible({
-      timeout: 30000,
-    });
     await expect(page.locator("#progress")).toHaveAttribute(
       "aria-valuenow",
       "100",
+      { timeout: 30000 },
     );
-    await expect(page.getByRole("progressbar")).toBeHidden();
+    // The loading screen is the only interface: it stays on screen at 100%.
+    await expect(page.getByRole("progressbar")).toBeVisible();
+    await expect(page.getByRole("button")).toHaveCount(2);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
     const dimensions = await page.evaluate(() => ({
       width: innerWidth,
       height: innerHeight,
@@ -40,10 +44,10 @@ for (const viewport of [
     }));
     expect(dimensions.contentWidth).toBeLessThanOrEqual(dimensions.width);
     expect(dimensions.contentHeight).toBeLessThanOrEqual(dimensions.height);
-    await page.getByRole("button", { name: "CONTINUE" }).click();
-    await expect(page.getByRole("dialog")).toBeVisible();
-    await page.getByRole("button", { name: "BACK TO START" }).click();
-    await expect(page.getByRole("dialog")).toBeHidden();
+    // Nothing navigates away once loading reaches 100%.
+    await page.waitForTimeout(600);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.getByRole("progressbar")).toBeVisible();
     expect(errors).toEqual([]);
     expect(remote).toEqual([]);
     if (viewport.width === 393)
@@ -59,6 +63,22 @@ for (const viewport of [
   });
 }
 
+test("only the loading screen exists in the document", async ({ page }) => {
+  await page.goto("/");
+  const structure = await page.evaluate(() => ({
+    sections: [...document.querySelectorAll("main > section")].map(
+      (node) => node.className,
+    ),
+    dialogs: document.querySelectorAll("dialog").length,
+    panels: document.querySelectorAll("[id$='-panel']").length,
+    navs: document.querySelectorAll("nav").length,
+  }));
+  expect(structure.sections).toEqual(["identity", "launch"]);
+  expect(structure.dialogs).toBe(0);
+  expect(structure.panels).toBe(1);
+  expect(structure.navs).toBe(0);
+});
+
 test("cached app works with network offline", async ({ page, context }) => {
   await page.goto("/");
   await page.evaluate(async () => {
@@ -72,37 +92,22 @@ test("cached app works with network offline", async ({ page, context }) => {
   });
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible({
-    timeout: 30000,
-  });
+  await expect(page.getByRole("progressbar")).toHaveAttribute(
+    "aria-valuenow",
+    "100",
+    { timeout: 30000 },
+  );
 });
 
-test("reduced motion and keyboard navigation", async ({ page }) => {
+test("reduced motion shortens the intro", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible({
-    timeout: 8000,
-  });
-  await page.getByRole("button", { name: "CONTINUE" }).focus();
-  await page.keyboard.press("Enter");
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).toBeHidden();
-  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeFocused();
-});
-
-test("dialog padding does not dismiss it but backdrop does", async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
-  await page.getByRole("button", { name: "CONTINUE" }).click();
-  const modal = page.getByRole("dialog");
-  const box = await modal.boundingBox();
-  await page.mouse.click(box.x + 10, box.y + 10);
-  await expect(modal).toBeVisible();
-  await page.mouse.click(5, 5);
-  await expect(modal).toBeHidden();
+  await expect(page.locator("#progress")).toHaveAttribute(
+    "aria-valuenow",
+    "100",
+    { timeout: 8000 },
+  );
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
 test("offline launch supports query strings and index.html", async ({
@@ -123,14 +128,16 @@ test("offline launch supports query strings and index.html", async ({
   await context.setOffline(true);
   for (const path of ["/?source=shared", "/index.html?source=shared"]) {
     await page.goto(path);
-    await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible({
-      timeout: 10000,
-    });
+    await expect(page.locator("#progress")).toHaveAttribute(
+      "aria-valuenow",
+      "100",
+      { timeout: 10000 },
+    );
   }
 });
 
 for (const mode of ["unsupported", "rejected"]) {
-  test(`fullscreen ${mode} shows fallback without breaking Continue`, async ({
+  test(`fullscreen ${mode} shows a fallback and keeps loading`, async ({
     page,
   }) => {
     await page.setViewportSize({ width: 320, height: 568 });
@@ -144,12 +151,11 @@ for (const mode of ["unsupported", "rejected"]) {
     await page.goto("/");
     await page.getByRole("button", { name: "Enter fullscreen" }).click();
     await expect(page.locator("#fullscreen-note")).not.toBeEmpty();
-    await page.getByRole("button", { name: "CONTINUE" }).click();
-    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("progressbar")).toBeVisible();
   });
 }
 
-test("game effects animate and intro can be replayed", async ({ page }) => {
+test("game effects animate on the loading screen", async ({ page }) => {
   await page.goto("/");
   const orbit = page.locator(".orbit-one");
   await expect(orbit).toHaveCSS("animation-name", "energy-spin");
@@ -157,12 +163,6 @@ test("game effects animate and intro can be replayed", async ({ page }) => {
   await expect
     .poll(() => orbit.evaluate((el) => getComputedStyle(el).transform))
     .not.toBe(before);
-  await page.getByRole("button", { name: "REPLAY INTRO" }).click();
-  await expect(page.getByRole("progressbar")).toBeVisible();
-  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeHidden();
-  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible({
-    timeout: 10000,
-  });
 });
 
 test("progress bar advances continuously without stepping", async ({
@@ -272,31 +272,10 @@ test("loading still finishes when Web Audio is unavailable", async ({
 
   await page.getByRole("button", { name: "Mute sound" }).click();
   await page.getByRole("button", { name: "Unmute sound" }).click();
-  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible({
-    timeout: 8000,
-  });
-  await page.getByRole("button", { name: "CONTINUE" }).click();
-  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.locator("#progress")).toHaveAttribute(
+    "aria-valuenow",
+    "100",
+    { timeout: 8000 },
+  );
   expect(errors).toEqual([]);
-});
-
-test("replay restarts a smooth intro", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
-  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible({
-    timeout: 8000,
-  });
-  await page.getByRole("button", { name: "REPLAY INTRO" }).click();
-  await expect(page.getByRole("progressbar")).toBeVisible();
-  const first = await page
-    .locator("#progress-fill")
-    .evaluate((node) => node.getBoundingClientRect().width);
-  await page.waitForTimeout(120);
-  const second = await page
-    .locator("#progress-fill")
-    .evaluate((node) => node.getBoundingClientRect().width);
-  expect(second).toBeGreaterThanOrEqual(first);
-  await expect(page.getByRole("button", { name: "CONTINUE" })).toBeVisible({
-    timeout: 8000,
-  });
 });
