@@ -65,23 +65,32 @@ for (const viewport of [
   });
 }
 
-test("only the loading screen exists in the document", async ({ page }) => {
+test("the document holds only the authorised screens", async ({ page }) => {
   await page.goto("/");
   const structure = await page.evaluate(() => ({
-    sections: [...document.querySelectorAll("main > section")].map(
+    mainSections: [...document.querySelectorAll("#screen-loading > section")].map(
       (node) => node.className,
     ),
-    dialogs: document.querySelectorAll("dialog").length,
+    screens: [...document.querySelectorAll(".app > .screen")].map(
+      (node) => node.id,
+    ),
+    dialogs: [...document.querySelectorAll("dialog")].map((node) => node.id),
     panels: [...document.querySelectorAll("[id$='-panel']")].map(
       (node) => node.id,
     ),
     navs: document.querySelectorAll("nav").length,
   }));
-  // Still a single screen: the loading panel plus the Continue panel that
-  // replaces it once the bar reaches 100%.
-  expect(structure.sections).toEqual(["identity", "launch"]);
-  expect(structure.dialogs).toBe(0);
-  expect(structure.panels).toEqual(["loading-panel", "ready-panel"]);
+  // The loading screen is untouched: its identity + launch sections remain.
+  expect(structure.mainSections).toEqual(["identity", "launch"]);
+  // Upgrade 2 adds exactly one screen and two panels — nothing else.
+  expect(structure.screens).toEqual(["screen-loading", "screen-welcome"]);
+  expect(structure.dialogs).toEqual(["admin-panel", "construction-panel"]);
+  expect(structure.panels).toEqual([
+    "loading-panel",
+    "ready-panel",
+    "admin-panel",
+    "construction-panel",
+  ]);
   expect(structure.navs).toBe(0);
 });
 
@@ -157,7 +166,7 @@ for (const mode of ["unsupported", "rejected"]) {
 
 test("game effects animate on the loading screen", async ({ page }) => {
   await page.goto("/");
-  const orbit = page.locator(".orbit-one");
+  const orbit = page.locator("#screen-loading .orbit-one");
   await expect(orbit).toHaveCSS("animation-name", "energy-spin");
   const before = await orbit.evaluate((el) => getComputedStyle(el).transform);
   await expect

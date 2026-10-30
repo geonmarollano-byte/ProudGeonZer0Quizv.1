@@ -14,10 +14,13 @@
     <title>ProudGeonZer0Quizv.1</title>
     <link rel="icon" href="./logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./style.css" />
+    <script src="./auth-config.js" defer></script>
     <script src="./app.js" defer></script>
   </head>
   <body>
-    <main class="screen">
+    <main class="app">
+      <!-- ============ SCREEN 1 — EXISTING LOADING SCREEN ============ -->
+      <section class="screen" id="screen-loading">
       <div class="game-atmosphere" aria-hidden="true">
         <span></span><span></span><span></span><span></span><span></span
         ><span></span>
@@ -164,7 +167,200 @@
         ><span class="footer-center">BUILT FOR THE CURIOUS.</span
         ><span>VERSION 1.0 <span class="footer-slash">/</span> 2026</span>
       </footer>
+      </section>
+
+      <!-- ========== SCREEN 2 — WELCOME BACK PLAYER ========== -->
+      <section
+        class="screen screen--page welcome"
+        id="screen-welcome"
+        aria-labelledby="welcome-title"
+        hidden
+      >
+        <div class="game-atmosphere" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span
+          ><span></span>
+        </div>
+        <header class="topbar">
+          <span class="studio"
+            ><span class="studio-mark" aria-hidden="true">P<span>G</span></span>
+            PROUDGEON <span class="studio-divider">/</span> PLAY. GROW.
+            REPEAT.</span
+          >
+        </header>
+
+        <section class="welcome-body">
+          <div class="emblem-wrap welcome-emblem" aria-hidden="true">
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <span class="spark spark-one"></span
+            ><span class="spark spark-two"></span>
+            <div class="emblem">
+              <svg viewBox="0 0 100 100" fill="none">
+                <path
+                  d="M50 12 80 29v35L50 82 20 64V29L50 12Z"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <path
+                  d="m50 23 20 12v23L50 70 30 58V35l20-12Z"
+                  fill="currentColor"
+                  fill-opacity=".09"
+                />
+                <path
+                  d="M55 30 37 52h13l-5 19 20-27H52l3-14Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="m67 73 10 10m-7-1h8v-8"
+                  stroke="currentColor"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+            <span class="emblem-caption">THE MIND IS LIMITLESS</span>
+          </div>
+
+          <p class="eyebrow">PROUDGEON ZER0QUIZ V.1</p>
+          <h1 id="welcome-title" tabindex="-1">WELCOME BACK PLAYER</h1>
+          <p class="welcome-subtitle">Welcome to your gaming experience.</p>
+          <div class="title-rule" aria-hidden="true">
+            <span></span><i></i><span></span>
+          </div>
+        </section>
+
+        <section class="welcome-actions" aria-label="Welcome options">
+          <button id="open-admin" class="action action--gold" type="button">
+            LOGIN AS AN ADMIN
+          </button>
+          <button id="open-player" class="action action--outline" type="button">
+            JOIN AS A PLAYER
+          </button>
+          <button id="back-to-loading" class="action action--ghost" type="button">
+            <span aria-hidden="true">&lt;</span> BACK
+          </button>
+        </section>
+
+        <footer>
+          <span><span class="offline-dot"></span> OFFLINE READY</span
+          ><span>VERSION 1.0 <span class="footer-slash">/</span> 2026</span>
+        </footer>
+      </section>
     </main>
+
+    <!-- ============ ADMIN LOGIN PANEL ============ -->
+    <dialog id="admin-panel" class="panel" aria-labelledby="admin-panel-title">
+      <div class="panel-body">
+        <div class="panel-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.4" stroke-linecap="round">
+            <rect x="4.5" y="10.5" width="15" height="9.5" rx="2.2" />
+            <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" />
+            <circle cx="12" cy="15.2" r="1.2" fill="currentColor" />
+          </svg>
+        </div>
+        <h2 id="admin-panel-title">ADMIN LOGIN</h2>
+        <p class="panel-desc">
+          Enter your administrator credentials to continue.
+        </p>
+
+        <form id="admin-form" novalidate autocomplete="on">
+          <div class="field">
+            <label for="admin-username">USERNAME</label>
+            <input
+              id="admin-username"
+              name="username"
+              type="text"
+              placeholder="Enter admin username"
+              autocomplete="username"
+              autocapitalize="none"
+              autocorrect="off"
+              spellcheck="false"
+              maxlength="64"
+            />
+          </div>
+
+          <div class="field">
+            <label for="admin-password">PASSWORD</label>
+            <div class="password-wrap">
+              <input
+                id="admin-password"
+                name="password"
+                type="password"
+                placeholder="Enter admin password"
+                autocomplete="current-password"
+                autocapitalize="none"
+                autocorrect="off"
+                spellcheck="false"
+                maxlength="128"
+              />
+              <button
+                id="password-toggle"
+                class="password-toggle"
+                type="button"
+                aria-pressed="false"
+                aria-controls="admin-password"
+                aria-label="Show password"
+                title="Show password"
+              >
+                <svg class="icon-eye" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                  aria-hidden="true">
+                  <path d="M2.6 12S6.4 6.4 12 6.4 21.4 12 21.4 12 17.6 17.6 12 17.6 2.6 12 2.6 12Z" />
+                  <circle cx="12" cy="12" r="3.1" />
+                </svg>
+                <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                  aria-hidden="true">
+                  <path d="M4 5.2 20 18.8M9.7 9.9a3.1 3.1 0 0 0 4.3 4.3M6.2 8.1C4 9.8 2.6 12 2.6 12s3.8 5.6 9.4 5.6c1.5 0 2.8-.4 4-1M17.9 15.4c1.9-1.6 3.5-3.4 3.5-3.4S17.6 6.4 12 6.4c-.8 0-1.6.1-2.3.3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button id="admin-submit" class="action action--gold" type="submit">
+            VERIFY ADMIN LOGIN
+          </button>
+        </form>
+
+        <p
+          id="admin-message"
+          class="panel-message"
+          role="status"
+          aria-live="polite"
+        ></p>
+
+        <button id="admin-back" class="action action--ghost" type="button">
+          BACK TO WELCOME SCREEN
+        </button>
+      </div>
+    </dialog>
+
+    <!-- ============ JOIN AS A PLAYER — INFORMATION PANEL ============ -->
+    <dialog
+      id="construction-panel"
+      class="panel"
+      aria-labelledby="construction-title"
+    >
+      <div class="panel-body">
+        <div class="panel-icon panel-icon--cone" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.4 4.6a1.85 1.85 0 0 1 3.2 0l5.5 11.1a1.85 1.85 0 0 1-1.6 2.7H6.5a1.85 1.85 0 0 1-1.6-2.7Z" />
+            <path d="M12 9.4v3.4" />
+            <circle cx="12" cy="15.6" r=".9" fill="currentColor" stroke="none" />
+          </svg>
+        </div>
+        <h2 id="construction-title">UNDER CONSTRUCTION</h2>
+        <p class="panel-desc panel-desc--message">
+          Under Contraction Please wait a little longer...
+        </p>
+        <button id="construction-close" class="action action--gold" type="button">
+          CLOSE
+        </button>
+      </div>
+    </dialog>
+
     <noscript
       ><div class="no-script">
         Please enable JavaScript to run this offline loading screen.
