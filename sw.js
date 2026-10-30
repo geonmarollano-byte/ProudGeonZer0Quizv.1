@@ -1,7 +1,7 @@
 "use strict";
 
 /* Cache name. Bump it whenever the cached files change. */
-const CACHE = "proudgeon-loading-v12";
+const CACHE = "proudgeon-loading-v13";
 const ASSETS = ["./", "./index.html", "./style.css", "./app.js", "./logo.svg"];
 
 self.addEventListener("install", (event) => {
