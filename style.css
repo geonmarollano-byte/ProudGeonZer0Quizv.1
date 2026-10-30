@@ -891,3 +891,546 @@ footer > span:first-child {
     padding-top: 8px;
   }
 }
+
+/* ============================================================
+   UPGRADE 2 — WELCOME SCREEN + ADMIN LOGIN SCREEN
+   Reuses the existing gold/navy identity tokens and components.
+   ============================================================ */
+
+/* Screen switching: only one of the three screens is ever rendered. */
+[hidden] {
+  display: none !important;
+}
+
+/* Welcome and Admin Login may scroll inside the screen on very short
+   viewports (e.g. a phone with the on-screen keyboard open) instead of
+   clipping content, and never scroll the page itself. */
+.screen--page {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.screen.is-active {
+  animation: screen-in 0.45s ease-out both;
+}
+
+/* Opacity + a barely-there scale: a transform that only shrinks can never
+   create overflow, so the page itself never becomes scrollable mid-fade. */
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: scale(0.996);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ---------- Welcome screen ---------- */
+/* The heading receives programmatic focus when a screen opens; it is not an
+   interactive control, so it does not draw the button focus ring. */
+.identity h1:focus,
+.identity h1:focus-visible {
+  outline: none;
+}
+
+.welcome-identity {
+  padding-top: 18px;
+}
+
+.welcome-identity h1 {
+  letter-spacing: 3px;
+}
+
+.welcome-subtitle {
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  line-height: 1.8;
+  color: #aab3bf;
+  margin: 18px auto 0;
+  max-width: 30ch;
+}
+
+.brand-line {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3.2px;
+  color: #8b95a2;
+  margin: 4px 0 0;
+}
+
+.brand-line strong {
+  color: var(--gold);
+  font-weight: 800;
+  letter-spacing: 3.2px;
+}
+
+.brand-line .version {
+  font-size: 8px;
+  letter-spacing: 1.4px;
+  padding: 3px 6px;
+  vertical-align: middle;
+}
+
+.welcome-action {
+  width: min(100%, 430px);
+  margin: 42px auto auto;
+  padding: 0 0 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.welcome-cta {
+  width: min(100%, 320px);
+}
+
+/* ---------- Shared primary / ghost actions ---------- */
+.primary-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  height: 52px;
+  padding: 0 20px;
+  border: 1px solid #f4d4a1;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #f2cb8a, var(--gold));
+  color: #16202e;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 2.6px;
+  cursor: pointer;
+  box-shadow: 0 10px 30px #e9bb7126;
+  transition:
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.12s ease,
+    opacity 0.18s ease;
+}
+
+.primary-action:hover:not(:disabled) {
+  background: linear-gradient(180deg, #f8ddaa, #f0c884);
+  box-shadow: 0 12px 36px #e9bb713d;
+}
+
+.primary-action:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.primary-action:disabled {
+  cursor: progress;
+  opacity: 0.62;
+  box-shadow: none;
+}
+
+.action-arrow {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.ghost-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  height: 46px;
+  margin-top: 12px;
+  padding: 0 16px;
+  border: 1px solid #ffffff14;
+  border-radius: 6px;
+  background: #ffffff04;
+  color: #b8a17d;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2.2px;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.ghost-action:hover {
+  color: #ffe1a8;
+  border-color: #e9bb7155;
+  background: #e9bb710f;
+}
+
+/* ---------- Admin login screen ---------- */
+.auth {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: auto 0;
+  padding: 20px 0;
+}
+
+.auth-card {
+  position: relative;
+  width: min(100%, 404px);
+  padding: 30px 26px 26px;
+  border: 1px solid #e9bb7126;
+  border-radius: 12px;
+  background:
+    radial-gradient(ellipse at 50% 0, #1a2533 0, transparent 62%),
+    linear-gradient(180deg, #101a27f2, #0c1420f7);
+  box-shadow: 0 28px 80px #00000059;
+  text-align: center;
+}
+
+.auth-lock {
+  width: 34px;
+  height: 34px;
+  margin: 0 auto 18px;
+  color: var(--gold);
+  opacity: 0.9;
+}
+
+.auth-lock svg {
+  width: 100%;
+  height: 100%;
+}
+
+.auth-card .eyebrow {
+  margin-bottom: 14px;
+  font-size: 8px;
+  letter-spacing: 2.8px;
+}
+
+.auth-card h1 {
+  font-size: clamp(24px, 3.4vw, 33px);
+  letter-spacing: 4px;
+  font-weight: 800;
+  margin: 0 0 26px;
+  line-height: 1.1;
+}
+
+#login-form {
+  text-align: left;
+}
+
+.field + .field {
+  margin-top: 18px;
+}
+
+.field label {
+  display: block;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 2.2px;
+  color: #97a1ae;
+  margin-bottom: 8px;
+}
+
+.field input {
+  width: 100%;
+  height: 50px;
+  padding: 0 14px;
+  border: 1px solid #ffffff1a;
+  border-radius: 6px;
+  background: #ffffff08;
+  color: var(--text);
+  /* 16px keeps iOS Safari from zooming in when a field is focused. */
+  font-size: 16px;
+  letter-spacing: 0.4px;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.field input:hover:not(:disabled) {
+  border-color: #ffffff2b;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: #e9bb7199;
+  background: #ffffff0f;
+  box-shadow: 0 0 0 3px #e9bb711f;
+}
+
+.field input[aria-invalid="true"] {
+  border-color: #d9737a99;
+  box-shadow: 0 0 0 3px #d9737a1f;
+}
+
+.field input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.password-wrap {
+  position: relative;
+}
+
+.password-wrap input {
+  padding-right: 54px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #8d97a4;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.password-toggle:hover {
+  color: var(--gold);
+  background: #ffffff0a;
+}
+
+.password-toggle svg {
+  width: 19px;
+  height: 19px;
+}
+
+.password-toggle .icon-eye-off {
+  display: none;
+}
+
+.password-toggle[aria-pressed="true"] .icon-eye {
+  display: none;
+}
+
+.password-toggle[aria-pressed="true"] .icon-eye-off {
+  display: block;
+}
+
+.field-error {
+  margin: 7px 0 0;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  line-height: 1.6;
+  color: #e39499;
+}
+
+#login-submit {
+  margin-top: 24px;
+}
+
+.auth-status {
+  margin: 14px 0 0;
+  font-size: 8.5px;
+  letter-spacing: 1.5px;
+  line-height: 1.8;
+  color: #9aa4b1;
+  text-align: center;
+}
+
+.auth-status:empty {
+  display: none;
+}
+
+.auth-status[data-tone="error"] {
+  color: #e39499;
+}
+
+.auth-status[data-tone="success"] {
+  color: #9dc9a8;
+}
+
+.auth-status[data-tone="pending"] {
+  color: #bda37c;
+}
+
+.auth-status[data-tone="notice"] {
+  color: #c9a77c;
+}
+
+.auth-notice {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #d9737a3d;
+  border-radius: 6px;
+  background: #d9737a12;
+  color: #dba7aa;
+  font-size: 8px;
+  letter-spacing: 1.4px;
+  line-height: 1.9;
+  text-align: center;
+}
+
+#login-form.is-authenticated .field input {
+  border-color: #9dc9a83d;
+}
+
+@media (max-width: 600px) {
+  .welcome-identity h1 {
+    font-size: clamp(25px, 7.6vw, 40px);
+    letter-spacing: 2px;
+  }
+  .welcome-identity h1 > span {
+    margin-top: 3px;
+  }
+  .welcome-subtitle {
+    font-size: 11px;
+    max-width: 26ch;
+  }
+  .brand-line {
+    font-size: 9px;
+    letter-spacing: 2.4px;
+  }
+  .brand-line strong {
+    letter-spacing: 2.4px;
+  }
+  .welcome-action {
+    margin-top: 34px;
+    padding-bottom: 22px;
+  }
+  .auth {
+    padding: 8px 0;
+  }
+  .auth-card {
+    padding: 24px 18px 22px;
+    border-radius: 10px;
+  }
+  .auth-card h1 {
+    letter-spacing: 3px;
+    margin-bottom: 22px;
+  }
+  .auth-lock {
+    width: 30px;
+    height: 30px;
+    margin-bottom: 14px;
+  }
+  .primary-action {
+    height: 50px;
+    font-size: 10px;
+    letter-spacing: 2.2px;
+  }
+}
+
+@media (max-height: 720px) {
+  .welcome-action {
+    margin-top: 26px;
+    padding-bottom: 16px;
+  }
+  .welcome-subtitle {
+    margin-top: 14px;
+  }
+  .auth-card {
+    padding-top: 22px;
+    padding-bottom: 20px;
+  }
+  .auth-card h1 {
+    margin-bottom: 18px;
+  }
+  .auth-lock {
+    display: none;
+  }
+  .field + .field {
+    margin-top: 14px;
+  }
+  #login-submit {
+    margin-top: 18px;
+  }
+}
+
+/* Short landscape phones (e.g. 851x393): the login card keeps its full set of
+   controls and scrolls inside the screen rather than clipping them. */
+@media (min-width: 601px) and (max-height: 500px) {
+  .auth {
+    padding: 4px 0;
+  }
+  .auth-card {
+    padding: 16px 18px 14px;
+  }
+  .auth-card h1 {
+    font-size: 20px;
+    letter-spacing: 2.4px;
+    margin-bottom: 12px;
+  }
+  .field label {
+    margin-bottom: 6px;
+  }
+  .field input {
+    height: 42px;
+  }
+  .field + .field {
+    margin-top: 10px;
+  }
+  #login-submit {
+    margin-top: 14px;
+  }
+  .primary-action {
+    height: 44px;
+  }
+  .ghost-action {
+    height: 40px;
+    margin-top: 8px;
+  }
+  .auth-notice {
+    margin-top: 10px;
+  }
+  #screen-login footer {
+    display: none;
+  }
+}
+
+@media (max-height: 560px) {
+  .welcome-subtitle {
+    margin-top: 10px;
+  }
+  .welcome-action {
+    margin-top: 18px;
+    gap: 12px;
+    padding-bottom: 10px;
+  }
+  .auth {
+    padding: 0;
+  }
+  .auth-card {
+    padding: 18px 16px 16px;
+  }
+  .auth-card .eyebrow {
+    margin-bottom: 10px;
+  }
+  .auth-card h1 {
+    font-size: 22px;
+    letter-spacing: 2.6px;
+    margin-bottom: 14px;
+  }
+  .field input {
+    height: 44px;
+  }
+  .primary-action {
+    height: 46px;
+  }
+  .ghost-action {
+    height: 42px;
+    margin-top: 8px;
+  }
+  .auth-status {
+    margin-top: 10px;
+  }
+  .auth-notice {
+    margin-top: 12px;
+    padding: 10px 12px;
+  }
+}

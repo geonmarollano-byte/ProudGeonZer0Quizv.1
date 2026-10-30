@@ -1,5 +1,12 @@
 const { test, expect } = require("@playwright/test");
 
+/* Upgrade 1 regression suite: the loading screen must behave exactly as it
+   did before Upgrade 2, and must now hand over to the Welcome screen. */
+
+async function waitForWelcome(page) {
+  await expect(page.locator("#screen-welcome")).toBeVisible({ timeout: 30000 });
+}
+
 for (const viewport of [
   { width: 1440, height: 900 },
   { width: 1280, height: 800 },
@@ -22,32 +29,57 @@ for (const viewport of [
         remote.push(request.url());
     });
     await page.goto("/");
+
+    // --- Loading screen (Upgrade 1) is unchanged -----------------------
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       "PROUDGEONZER0QUIZV.1",
     );
     await expect(page.getByRole("progressbar")).toBeVisible();
     await expect(page.locator("#percentage")).not.toHaveText("0");
-    await expect(page.locator("#progress")).toHaveAttribute(
-      "aria-valuenow",
-      "100",
-      { timeout: 30000 },
+    await expect(page.locator(".orbit-one")).toHaveCSS(
+      "animation-name",
+      "energy-spin",
     );
-    // The loading screen is the only interface: it stays on screen at 100%.
-    await expect(page.getByRole("progressbar")).toBeVisible();
-    await expect(page.getByRole("button")).toHaveCount(2);
-    await expect(page.getByRole("dialog")).toHaveCount(0);
-    const dimensions = await page.evaluate(() => ({
+    await expect(page.locator(".emblem")).toHaveCSS(
+      "animation-name",
+      "emblem-float",
+    );
+    const loading = await page.evaluate(() => ({
       width: innerWidth,
       height: innerHeight,
       contentWidth: document.documentElement.scrollWidth,
       contentHeight: document.documentElement.scrollHeight,
     }));
-    expect(dimensions.contentWidth).toBeLessThanOrEqual(dimensions.width);
-    expect(dimensions.contentHeight).toBeLessThanOrEqual(dimensions.height);
-    // Nothing navigates away once loading reaches 100%.
-    await page.waitForTimeout(600);
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expect(page.getByRole("progressbar")).toBeVisible();
+    expect(loading.contentWidth).toBeLessThanOrEqual(loading.width);
+    expect(loading.contentHeight).toBeLessThanOrEqual(loading.height);
+
+    // --- 100% then hand-off to Welcome ---------------------------------
+    await expect(page.locator("#progress")).toHaveAttribute(
+      "aria-valuenow",
+      "100",
+      { timeout: 30000 },
+    );
+    await waitForWelcome(page);
+    await expect(page.locator("#percentage")).toHaveText("100");
+    await expect(page.locator("#screen-loading")).toBeHidden();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "WELCOME TO THE NEXT LEVEL.",
+    );
+    await expect(
+      page.getByRole("button", { name: "ADMIN LOGIN" }),
+    ).toBeVisible();
+
+    const welcome = await page.evaluate(() => ({
+      width: innerWidth,
+      height: innerHeight,
+      contentWidth: document.documentElement.scrollWidth,
+      contentHeight: document.documentElement.scrollHeight,
+      screen: document.body.dataset.screen,
+    }));
+    expect(welcome.contentWidth).toBeLessThanOrEqual(welcome.width);
+    expect(welcome.contentHeight).toBeLessThanOrEqual(welcome.height);
+    expect(welcome.screen).toBe("welcome");
+
     expect(errors).toEqual([]);
     expect(remote).toEqual([]);
     if (viewport.width === 393)
@@ -63,20 +95,27 @@ for (const viewport of [
   });
 }
 
-test("only the loading screen exists in the document", async ({ page }) => {
+test("only the three authorised screens exist in the document", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/");
   const structure = await page.evaluate(() => ({
-    sections: [...document.querySelectorAll("main > section")].map(
-      (node) => node.className,
+    screens: [...document.querySelectorAll(".app > .screen")].map(
+      (node) => node.id,
     ),
     dialogs: document.querySelectorAll("dialog").length,
-    panels: document.querySelectorAll("[id$='-panel']").length,
     navs: document.querySelectorAll("nav").length,
+    forms: document.querySelectorAll("form").length,
   }));
-  expect(structure.sections).toEqual(["identity", "launch"]);
+  expect(structure.screens).toEqual([
+    "screen-loading",
+    "screen-welcome",
+    "screen-login",
+  ]);
   expect(structure.dialogs).toBe(0);
-  expect(structure.panels).toBe(1);
   expect(structure.navs).toBe(0);
+  expect(structure.forms).toBe(1);
 });
 
 test("cached app works with network offline", async ({ page, context }) => {
@@ -92,22 +131,19 @@ test("cached app works with network offline", async ({ page, context }) => {
   });
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole("progressbar")).toHaveAttribute(
-    "aria-valuenow",
-    "100",
-    { timeout: 30000 },
-  );
+  await waitForWelcome(page);
+  await expect(
+    page.getByRole("button", { name: "ADMIN LOGIN" }),
+  ).toBeVisible();
 });
 
-test("reduced motion shortens the intro", async ({ page }) => {
+test("reduced motion shortens the intro and the hand-off", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await expect(page.locator("#progress")).toHaveAttribute(
-    "aria-valuenow",
-    "100",
-    { timeout: 8000 },
+  await expect(page.locator("#screen-welcome")).toBeVisible({ timeout: 8000 });
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "WELCOME TO THE NEXT LEVEL.",
   );
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
 test("offline launch supports query strings and index.html", async ({
@@ -128,11 +164,9 @@ test("offline launch supports query strings and index.html", async ({
   await context.setOffline(true);
   for (const path of ["/?source=shared", "/index.html?source=shared"]) {
     await page.goto(path);
-    await expect(page.locator("#progress")).toHaveAttribute(
-      "aria-valuenow",
-      "100",
-      { timeout: 10000 },
-    );
+    await expect(page.locator("#screen-welcome")).toBeVisible({
+      timeout: 15000,
+    });
   }
 });
 
@@ -155,7 +189,7 @@ for (const mode of ["unsupported", "rejected"]) {
   });
 }
 
-test("game effects animate on the loading screen", async ({ page }) => {
+test("game effects animate during loading", async ({ page }) => {
   await page.goto("/");
   const orbit = page.locator(".orbit-one");
   await expect(orbit).toHaveCSS("animation-name", "energy-spin");
@@ -192,17 +226,13 @@ test("progress bar advances continuously without stepping", async ({
   );
 
   expect(samples.length).toBeGreaterThan(15);
-  // Strictly increasing: no backwards jumps or frozen frames.
   for (let index = 1; index < samples.length; index += 1) {
     expect(samples[index].width).toBeGreaterThanOrEqual(samples[index - 1].width);
   }
-  // Many distinct widths means a smooth sweep rather than a few big steps.
   expect(
     new Set(samples.map((sample) => sample.width.toFixed(2))).size,
   ).toBeGreaterThan(15);
 
-  // Look only at frame-to-frame steps that actually rendered back to back;
-  // skipped frames on a busy machine are not a bar stutter.
   const width = await page
     .locator("#progress")
     .evaluate((node) => node.getBoundingClientRect().width);
@@ -272,10 +302,13 @@ test("loading still finishes when Web Audio is unavailable", async ({
 
   await page.getByRole("button", { name: "Mute sound" }).click();
   await page.getByRole("button", { name: "Unmute sound" }).click();
-  await expect(page.locator("#progress")).toHaveAttribute(
-    "aria-valuenow",
-    "100",
-    { timeout: 8000 },
+  await expect(page.locator("#screen-welcome")).toBeVisible({ timeout: 8000 });
+  // Only the non-sensitive sound preference may be persisted.
+  const stored = await page.evaluate(() =>
+    Object.keys(window.localStorage),
+  );
+  expect(stored.every((key) => key.startsWith("proudgeon-loading.sound"))).toBe(
+    true,
   );
   expect(errors).toEqual([]);
 });

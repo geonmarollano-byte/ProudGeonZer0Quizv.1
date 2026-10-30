@@ -10,6 +10,16 @@ const soundToggle = document.querySelector("#sound-toggle");
 const soundHint = document.querySelector("#sound-hint");
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
+/* ================= SCREENS ================= */
+/* Only three screens exist: loading (Upgrade 1), welcome and admin login
+   (Upgrade 2). Exactly one is rendered at a time. */
+const screens = {
+  loading: document.querySelector("#screen-loading"),
+  welcome: document.querySelector("#screen-welcome"),
+  login: document.querySelector("#screen-login"),
+};
+let currentScreen = "loading";
+
 /* ================= SOUND ================= */
 // All audio is synthesized with Web Audio, so nothing extra has to download.
 const SOUND_KEY = "proudgeon-loading.sound.v1";
@@ -219,6 +229,7 @@ const REDUCED_INTRO_MS = 700;
 let introFrame = 0;
 let introDone = false;
 let introWatchdog = 0;
+let welcomeTimer = 0;
 
 function setProgress(value) {
   const clamped = Math.min(100, Math.max(0, value));
@@ -287,9 +298,14 @@ function completeIntro() {
   loadingActive = false;
   stopAmbience(0.7);
   playChime();
-  // The loading screen is the only interface: 100% simply holds in place.
-  announcement.textContent = "Loading complete.";
+  announcement.textContent = "Loading complete. Opening welcome screen.";
   updateSoundHint();
+  // Hand over to the Welcome screen after the 100% state has painted once.
+  window.clearTimeout(welcomeTimer);
+  welcomeTimer = window.setTimeout(
+    () => showScreen("welcome"),
+    reduceMotion.matches ? 200 : 700,
+  );
 }
 
 updateSoundHint();
@@ -331,6 +347,302 @@ document.addEventListener("fullscreenchange", () => {
   fullscreenButton.setAttribute("aria-label", label);
   fullscreenButton.title = label;
 });
+
+/* ================= SCREEN ROUTER ================= */
+function showScreen(name, focusSelector) {
+  const target = screens[name];
+  if (!target || name === currentScreen) return;
+
+  Object.entries(screens).forEach(([key, element]) => {
+    const active = key === name;
+    if (element.hidden === active) element.hidden = !active;
+    element.classList.toggle("is-active", active);
+  });
+  currentScreen = name;
+  document.body.dataset.screen = name;
+
+  const focusTarget =
+    (focusSelector && target.querySelector(focusSelector)) ||
+    target.querySelector("h1");
+  if (focusTarget) {
+    if (!focusTarget.hasAttribute("tabindex")) {
+      focusTarget.setAttribute("tabindex", "-1");
+    }
+    focusTarget.focus({ preventScroll: true });
+  }
+  target.scrollTop = 0;
+}
+
+/* ================= ADMIN AUTHENTICATION =================
+   This bundle is public. It therefore contains no username, no password,
+   no hash and no secret of any kind. Credentials are verified only by a
+   server-side endpoint configured at deploy time in ./auth-config.json.
+   If no endpoint is configured the login screen reports that plainly and
+   never pretends a login succeeded. */
+const AUTH_CONFIG_URL = "./auth-config.json";
+const AUTH_MESSAGE = {
+  requiredUsername: "ENTER YOUR ADMIN USERNAME.",
+  requiredPassword: "ENTER YOUR ADMIN PASSWORD.",
+  missingFields: "CHECK THE HIGHLIGHTED FIELDS AND TRY AGAIN.",
+  invalid: "INVALID USERNAME OR PASSWORD.",
+  unconfiguredNotice: "SECURE AUTHENTICATION IS NOT CONFIGURED FOR THIS DEPLOYMENT.",
+  unconfigured:
+    "SECURE AUTHENTICATION IS NOT CONFIGURED FOR THIS DEPLOYMENT. NO CREDENTIALS CAN BE VERIFIED UNTIL A SERVER-SIDE AUTH ENDPOINT IS CONNECTED.",
+  unavailable:
+    "THE AUTHENTICATION SERVICE IS UNAVAILABLE. PLEASE TRY AGAIN LATER.",
+  pending: "VERIFYING CREDENTIALS…",
+  authenticated: "ACCESS GRANTED. ADMINISTRATOR SESSION IS ACTIVE.",
+};
+
+const loginForm = document.querySelector("#login-form");
+const usernameInput = document.querySelector("#admin-username");
+const passwordInput = document.querySelector("#admin-password");
+const usernameError = document.querySelector("#username-error");
+const passwordError = document.querySelector("#password-error");
+const passwordToggle = document.querySelector("#password-toggle");
+const loginSubmit = document.querySelector("#login-submit");
+const loginStatus = document.querySelector("#login-status");
+const authNotice = document.querySelector("#auth-notice");
+const adminLoginOpen = document.querySelector("#admin-login-open");
+const backToWelcome = document.querySelector("#back-to-welcome");
+
+let authConfig = null;
+let authConfigPromise = null;
+let submitting = false;
+let authenticated = false;
+
+/* Only same-origin, HTTPS or local-development endpoints are ever accepted,
+   so credentials can never be posted over plain HTTP to a remote host. */
+function resolveAuthEndpoint(rawValue) {
+  if (typeof rawValue !== "string") return "";
+  const value = rawValue.trim();
+  if (!value) return "";
+  let url;
+  try {
+    url = new URL(value, window.location.href);
+  } catch {
+    return "";
+  }
+  const sameOrigin = url.origin === window.location.origin;
+  const secure = url.protocol === "https:";
+  const local =
+    url.protocol === "http:" &&
+    (url.hostname === "localhost" || url.hostname === "127.0.0.1");
+  return sameOrigin || secure || local ? url.href : "";
+}
+
+function authEndpoint() {
+  return authConfig ? resolveAuthEndpoint(authConfig.endpoint) : "";
+}
+
+function loadAuthConfig() {
+  if (authConfigPromise) return authConfigPromise;
+  const injected = window.PG_AUTH_CONFIG;
+  if (injected && typeof injected === "object") {
+    authConfig = injected;
+    authConfigPromise = Promise.resolve(authConfig);
+    return authConfigPromise;
+  }
+  authConfigPromise = fetch(AUTH_CONFIG_URL, {
+    cache: "no-store",
+    credentials: "same-origin",
+    headers: { Accept: "application/json" },
+  })
+    .then((response) => (response.ok ? response.json() : null))
+    .catch(() => null)
+    .then((config) => {
+      authConfig =
+        config && typeof config === "object" && !Array.isArray(config)
+          ? config
+          : null;
+      return authConfig;
+    });
+  return authConfigPromise;
+}
+
+function setStatus(message, tone) {
+  loginStatus.textContent = message || "";
+  if (message && tone) loginStatus.dataset.tone = tone;
+  else delete loginStatus.dataset.tone;
+}
+
+function setFieldError(input, errorNode, message) {
+  if (message) {
+    input.setAttribute("aria-invalid", "true");
+    errorNode.textContent = message;
+    errorNode.hidden = false;
+  } else {
+    input.removeAttribute("aria-invalid");
+    errorNode.textContent = "";
+    errorNode.hidden = true;
+  }
+}
+
+function setSubmitting(value) {
+  submitting = value;
+  loginSubmit.disabled = value || authenticated;
+  loginForm.toggleAttribute("aria-busy", value);
+  loginSubmit.firstChild.textContent = value ? "SECURE LOGIN…" : "SECURE LOGIN ";
+}
+
+function revealAuthAvailability() {
+  const configured = Boolean(authEndpoint());
+  authNotice.textContent = configured ? "" : AUTH_MESSAGE.unconfiguredNotice;
+  authNotice.hidden = configured;
+}
+
+/* Returns "authenticated" | "invalid" | "unavailable" | "unconfigured". */
+async function requestAuthentication(username, password) {
+  const endpoint = authEndpoint();
+  if (!endpoint) return "unconfigured";
+  let response;
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      credentials: "include",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ username, password }),
+    });
+  } catch {
+    return "unavailable";
+  }
+  if (response.status === 401 || response.status === 403) return "invalid";
+  if (!response.ok) return "unavailable";
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+  const accepted =
+    payload &&
+    typeof payload === "object" &&
+    (payload.authenticated === true || payload.ok === true);
+  return accepted ? "authenticated" : "invalid";
+}
+
+async function handleLoginSubmit(event) {
+  event.preventDefault();
+  // Guard against double submits (Enter key, double click, impatient taps).
+  if (submitting || authenticated) return;
+
+  setFieldError(usernameInput, usernameError, "");
+  setFieldError(passwordInput, passwordError, "");
+  setStatus("");
+
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value;
+  let valid = true;
+  if (!username) {
+    setFieldError(usernameInput, usernameError, AUTH_MESSAGE.requiredUsername);
+    valid = false;
+  }
+  if (!password) {
+    setFieldError(passwordInput, passwordError, AUTH_MESSAGE.requiredPassword);
+    valid = false;
+  }
+  if (!valid) {
+    setStatus(AUTH_MESSAGE.missingFields, "error");
+    (username ? passwordInput : usernameInput).focus({ preventScroll: true });
+    return;
+  }
+
+  // Lock the control immediately so a second click, Enter press or tap can
+  // never queue another attempt while this one is in flight.
+  setSubmitting(true);
+  let outcome = "unavailable";
+  try {
+    await loadAuthConfig();
+    revealAuthAvailability();
+    if (!authEndpoint()) {
+      // One message at a time: the status line explains it in full.
+      authNotice.hidden = true;
+      setStatus(AUTH_MESSAGE.unconfigured, "notice");
+      return;
+    }
+    setStatus(AUTH_MESSAGE.pending, "pending");
+    outcome = await requestAuthentication(username, password);
+  } finally {
+    setSubmitting(false);
+  }
+
+  if (outcome === "authenticated") {
+    authenticated = true;
+    loginForm.classList.add("is-authenticated");
+    // Credentials are not retained anywhere once the check has been made.
+    passwordInput.value = "";
+    usernameInput.disabled = true;
+    passwordInput.disabled = true;
+    passwordToggle.disabled = true;
+    loginSubmit.disabled = true;
+    setStatus(AUTH_MESSAGE.authenticated, "success");
+    return;
+  }
+  if (outcome === "invalid") {
+    // Deliberately generic: never reveals which part was wrong.
+    setStatus(AUTH_MESSAGE.invalid, "error");
+    passwordInput.value = "";
+    passwordInput.focus({ preventScroll: true });
+    return;
+  }
+  if (outcome === "unconfigured") {
+    setStatus(AUTH_MESSAGE.unconfigured, "notice");
+    return;
+  }
+  setStatus(AUTH_MESSAGE.unavailable, "error");
+}
+
+adminLoginOpen.addEventListener("click", () => {
+  showScreen("login", "#admin-username");
+  loadAuthConfig().then(revealAuthAvailability);
+});
+
+backToWelcome.addEventListener("click", () => {
+  if (submitting) return;
+  if (!authenticated) {
+    passwordInput.value = "";
+    setFieldError(usernameInput, usernameError, "");
+    setFieldError(passwordInput, passwordError, "");
+    setStatus("");
+  }
+  showScreen("welcome", "#admin-login-open");
+});
+
+loginForm.addEventListener("submit", handleLoginSubmit);
+
+usernameInput.addEventListener("input", () => {
+  if (usernameInput.getAttribute("aria-invalid") === "true") {
+    setFieldError(usernameInput, usernameError, "");
+  }
+});
+
+passwordInput.addEventListener("input", () => {
+  if (passwordInput.getAttribute("aria-invalid") === "true") {
+    setFieldError(passwordInput, passwordError, "");
+  }
+});
+
+passwordToggle.addEventListener("click", () => {
+  const revealed = passwordToggle.getAttribute("aria-pressed") === "true";
+  passwordInput.type = revealed ? "password" : "text";
+  passwordToggle.setAttribute("aria-pressed", String(!revealed));
+  const label = revealed ? "Show password" : "Hide password";
+  passwordToggle.setAttribute("aria-label", label);
+  passwordToggle.title = label;
+  passwordInput.focus({ preventScroll: true });
+});
+
+// Load the (secret-free) configuration early so the status notice is accurate
+// before the first login attempt, without ever blocking the loading screen.
+if ("requestIdleCallback" in window) {
+  window.requestIdleCallback(() => loadAuthConfig().then(revealAuthAvailability));
+} else {
+  window.setTimeout(() => loadAuthConfig().then(revealAuthAvailability), 1200);
+}
 
 // Cache the small, dependency-free app for later offline visits.
 if ("serviceWorker" in navigator && window.isSecureContext) {
