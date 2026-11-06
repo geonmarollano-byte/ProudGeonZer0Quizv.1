@@ -1,7 +1,7 @@
 "use strict";
 
 /* Cache name. Bump it whenever the cached files change. */
-const CACHE = "proudgeon-loading-v15";
+const CACHE = "proudgeon-loading-v16";
 const ASSETS = [
   "./",
   "./index.html",
