@@ -23,15 +23,25 @@ The page fills the available viewport, including Android safe areas. Use the top
 - Floating emblem, rotating energy rings, rising particles, and a shimmering progress bar.
 - Small uppercase motivational quote with a navy/gold visual theme.
 - Frame-driven 1–100% intro (about 3.6 seconds) that sweeps continuously instead of stepping.
-- After reaching 100% the screen simply holds; nothing else opens and the page
-  does not navigate or swap in another interface.
+- After reaching 100% the progress bar is replaced by a single **CONTINUE**
+  button; the page never navigates on its own.
 - Reduced-motion preference support (shortened intro).
-- Keyboard-accessible controls, progress semantics, and completion announcement.
+- Keyboard-accessible controls, progress semantics (`aria-valuenow` +
+  `aria-valuetext`), a busy state while loading, and a completion announcement.
+- Design-token layer plus `forced-colors`, `prefers-contrast` and
+  `prefers-reduced-transparency` support.
 - Synthesized intro sound (Web Audio, no audio files): a rising ambient pad, soft progress ticks and a completion chime. Browsers require a first tap or keypress, so the page shows “TAP ANYWHERE TO ENABLE SOUND” until audio is unlocked. The speaker button mutes/unmutes and the choice is remembered.
 - Responsive portrait/landscape layouts with no external assets.
 - Service worker caching for offline revisits after the first successful visit on HTTPS or localhost. Direct file use works without a service worker. Clearing browser site data removes the offline cache.
 
-The percentage represents the local intro sequence, not a network download. Update the cache version in `sw.js` when changing cached assets for a deployment (`proudgeon-loading-v14`).
+The percentage represents the local intro sequence, not a network download. Update the cache version in `sw.js` when changing cached assets for a deployment (`proudgeon-loading-v16`).
+
+## Documentation
+
+| File | Contents |
+|---|---|
+| [`UPGRADE-1.md`](./UPGRADE-1.md) | Full as-built specification of the loading screen: DOM, design tokens, animation inventory, timeline, audio synthesis, responsive map, accessibility, edge cases, QA record |
+| [`ROADMAP.md`](./ROADMAP.md) | Forward plan for Upgrades 3–10 with scope, acceptance criteria, risks and milestones |
 
 ## Removed screens
 

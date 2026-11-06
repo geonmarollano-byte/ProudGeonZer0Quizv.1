@@ -286,3 +286,126 @@ test("loading still finishes when Web Audio is unavailable", async ({
   });
   expect(errors).toEqual([]);
 });
+
+/* ---------- Professional detail pass (Upgrade 1) ---------- */
+test("progress exposes a spoken value and a busy state", async ({ page }) => {
+  await page.goto("/");
+  const panel = page.locator("#loading-panel");
+  const bar = page.locator("#progress");
+
+  // While the sweep runs the panel reports itself busy and the bar speaks.
+  await expect(panel).toHaveAttribute("aria-busy", "true");
+  const early = await bar.getAttribute("aria-valuetext");
+  expect(early).toMatch(/^\d+ percent loaded$/);
+
+  // `aria-valuetext` always agrees with `aria-valuenow`.
+  await expect
+    .poll(async () => {
+      const now = await bar.getAttribute("aria-valuenow");
+      const text = await bar.getAttribute("aria-valuetext");
+      return `${now}|${text}`;
+    })
+    .toMatch(/^\d+\|\d+ percent loaded$/);
+
+  // At completion the value is final and the panel is no longer busy.
+  await expect(page.getByRole("button", { name: /CONTINUE/ })).toBeVisible({
+    timeout: 30000,
+  });
+  await expect(bar).toHaveAttribute("aria-valuenow", "100");
+  await expect(bar).toHaveAttribute("aria-valuetext", "100 percent loaded");
+  await expect(panel).toHaveAttribute("aria-busy", "false");
+});
+
+test("the finished bar releases its compositor hint", async ({ page }) => {
+  await page.goto("/");
+  const fill = page.locator("#progress-fill");
+  // A hint is present while the sweep animates.
+  expect(
+    await fill.evaluate((node) => getComputedStyle(node).willChange),
+  ).toBe("width");
+  await expect(page.getByRole("button", { name: /CONTINUE/ })).toBeVisible({
+    timeout: 30000,
+  });
+  expect(
+    await fill.evaluate((node) => getComputedStyle(node).willChange),
+  ).toBe("auto");
+});
+
+test("reduced motion disables the ambient animations", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  for (const selector of [".orbit-one", ".orbit-two", ".emblem", ".spark-one"]) {
+    expect(
+      await page
+        .locator(`#screen-loading ${selector}`)
+        .evaluate((node) => getComputedStyle(node).animationName),
+    ).toBe("none");
+  }
+  // The decorative particle field is removed entirely, not just stopped.
+  expect(
+    await page
+      .locator(".game-atmosphere")
+      .first()
+      .evaluate((node) => getComputedStyle(node).display),
+  ).toBe("none");
+});
+
+test("the percentage block does not reflow as the number grows", async ({
+  page,
+}) => {
+  await page.goto("/");
+  // Measured deterministically while the panel is visible: the widest label
+  // ("100%") must not make the block, the track or the heading wider.
+  const widths = await page.evaluate(() => {
+    const number = document.querySelector("#percentage");
+    const outer = document.querySelector(".percentage");
+    const track = document.querySelector("#progress");
+    const original = number.textContent;
+    const read = (value) => {
+      number.textContent = value;
+      return {
+        outer: outer.getBoundingClientRect().width,
+        track: track.getBoundingClientRect().width,
+      };
+    };
+    const one = read("1");
+    const two = read("50");
+    const three = read("100");
+    number.textContent = original;
+    return { one, two, three };
+  });
+
+  expect(widths.two.outer).toBeCloseTo(widths.one.outer, 0);
+  expect(widths.three.outer).toBeCloseTo(widths.one.outer, 0);
+  expect(widths.three.track).toBeCloseTo(widths.one.track, 0);
+});
+
+test("design tokens are declared once and drive the primary button", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: /CONTINUE/ })).toBeVisible({
+    timeout: 30000,
+  });
+  const tokens = await page.evaluate(() => {
+    const root = getComputedStyle(document.documentElement);
+    const button = getComputedStyle(document.querySelector("#continue"));
+    return {
+      gold: root.getPropertyValue("--gold").trim(),
+      ink: root.getPropertyValue("--ink").trim(),
+      line: root.getPropertyValue("--gold-line").trim(),
+      radius: root.getPropertyValue("--radius-md").trim(),
+      buttonColor: button.color,
+      buttonBorder: button.borderTopColor,
+      buttonRadius: button.borderTopLeftRadius,
+    };
+  });
+  expect(tokens.gold).toBe("#e9bb71");
+  expect(tokens.ink).toBe("#16202e");
+  expect(tokens.line).toBe("#f4d4a1");
+  expect(tokens.radius).toBe("6px");
+  // Tokens resolve to the same rendered values as the originals.
+  expect(tokens.buttonColor).toBe("rgb(22, 32, 46)");
+  expect(tokens.buttonBorder).toBe("rgb(244, 212, 161)");
+  expect(tokens.buttonRadius).toBe("6px");
+});

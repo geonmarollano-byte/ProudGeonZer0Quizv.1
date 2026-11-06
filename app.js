@@ -231,8 +231,11 @@ function setProgress(value) {
   const shown = Math.round(clamped);
   if (percentage.textContent !== String(shown)) {
     percentage.textContent = String(shown);
+    progress.setAttribute("aria-valuenow", String(shown));
+    // Only rewritten when the rounded value changes, so assistive tech is not
+    // spammed with 60 updates a second.
+    progress.setAttribute("aria-valuetext", `${shown} percent loaded`);
   }
-  progress.setAttribute("aria-valuenow", String(shown));
 }
 
 function startIntro() {
@@ -241,8 +244,12 @@ function startIntro() {
   introDone = false;
   announcement.textContent = "";
   setProgress(1);
+  progress.setAttribute("aria-valuenow", "1");
+  progress.setAttribute("aria-valuetext", "1 percent loaded");
   loadingPanel.hidden = false;
+  loadingPanel.setAttribute("aria-busy", "true");
   readyPanel.hidden = true;
+  fill.classList.remove("is-idle");
 
   const duration = reduceMotion.matches ? REDUCED_INTRO_MS : INTRO_MS;
   const milestones = duration < 1500 ? 4 : 10;
@@ -290,6 +297,12 @@ function completeIntro() {
   window.clearTimeout(introWatchdog);
   window.cancelAnimationFrame(introFrame);
   setProgress(100);
+  progress.setAttribute("aria-valuenow", "100");
+  progress.setAttribute("aria-valuetext", "100 percent loaded");
+  loadingPanel.setAttribute("aria-busy", "false");
+  // The sweep is finished: drop the compositor hint so the bar stops
+  // occupying its own GPU layer for the rest of the session.
+  fill.classList.add("is-idle");
   loadingActive = false;
   stopAmbience(0.7);
   playChime();

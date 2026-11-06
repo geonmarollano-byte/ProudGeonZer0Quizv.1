@@ -124,7 +124,7 @@
       </section>
 
       <section class="launch" aria-label="Game loading">
-        <div id="loading-panel">
+        <div id="loading-panel" aria-busy="true">
           <div class="progress-heading">
             <span id="loading-label">PREPARING YOUR NEXT CHALLENGE</span
             ><span class="percentage"
@@ -139,6 +139,7 @@
             aria-valuemin="0"
             aria-valuemax="100"
             aria-valuenow="1"
+            aria-valuetext="1 percent loaded"
           >
             <div id="progress-fill"></div>
           </div>

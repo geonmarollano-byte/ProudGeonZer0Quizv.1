@@ -1,9 +1,29 @@
 :root {
   color-scheme: dark;
+
+  /* ---------- Colour ---------- */
   --bg: #090e19;
   --gold: #e9bb71;
-  --muted: #77818f;
+  --gold-soft: #f2cb8a; /* gradient top stop */
+  --gold-line: #f4d4a1; /* primary button hairline */
+  --gold-glow: #e9bb7126; /* primary button shadow (original alpha) */
+  --ink: #16202e; /* text on gold surfaces */
   --text: #f1eee7;
+  --muted: #77818f;
+  --hairline: #ffffff16;
+
+  /* ---------- Geometry ---------- */
+  --radius-sm: 4px;
+  --radius-icon: 8px; /* icon buttons, as shipped */
+  --radius-md: 6px;
+  --radius-lg: 12px;
+
+  /* ---------- Motion ---------- */
+  --dur-fast: 150ms;
+  --dur-base: 280ms;
+  --dur-slow: 450ms;
+  --ease-out: cubic-bezier(0.22, 0.8, 0.35, 1);
+
   font-family: Arial, Helvetica, sans-serif;
   background: var(--bg);
   color: var(--text);
@@ -1486,4 +1506,123 @@ footer > span:first-child {
 .panel-message[data-tone="success"] {
   font-size: 10.5px;
   letter-spacing: 1.4px;
+}
+
+/* ============================================================
+   UPGRADE 1 — PROFESSIONAL DETAIL PASS
+   Tokens, assistive-technology states, contrast modes and render
+   hints. No visual redesign: every rule below either strengthens
+   an existing value for accessibility or removes a rendering
+   cost. The original palette and proportions are unchanged.
+   ============================================================ */
+
+/* Swap the gold accents to the shared tokens so a palette change is
+   one edit. Values are identical to the originals. */
+.continue {
+  border-color: var(--gold-line);
+  background: linear-gradient(180deg, var(--gold-soft), var(--gold));
+  color: var(--ink);
+  box-shadow: 0 10px 30px var(--gold-glow);
+}
+
+.icon-button {
+  border-color: var(--hairline);
+  border-radius: var(--radius-icon);
+}
+
+/* The percentage never reflows between 9 %, 10 % and 100 %. */
+.percentage {
+  min-width: 4.5ch;
+  display: inline-block;
+  text-align: right;
+}
+
+/* Headlines wrap on word boundaries instead of leaving a lonely word. */
+h1,
+.quote p {
+  text-wrap: balance;
+}
+
+/* Decorative layers cannot affect layout or paint outside themselves. */
+.game-atmosphere {
+  contain: layout paint;
+}
+
+/* Once the sweep has finished the bar no longer needs its own layer. */
+#progress-fill.is-idle {
+  will-change: auto;
+}
+
+/* ---------- Forced colours (Windows High Contrast) ---------- */
+@media (forced-colors: active) {
+  .progress-track,
+  .continue,
+  .icon-button {
+    border: 1px solid ButtonBorder;
+  }
+  .progress-track {
+    background: Canvas;
+  }
+  #progress-fill {
+    background: Highlight;
+    box-shadow: none;
+  }
+  #progress-fill::after {
+    display: none; /* the shimmer is invisible anyway; stop the work */
+  }
+  .continue,
+  .icon-button {
+    background: ButtonFace;
+    color: ButtonText;
+    forced-color-adjust: none;
+  }
+  .emblem,
+  .spark {
+    color: CanvasText;
+  }
+  footer,
+  .loading-note,
+  .studio,
+  .eyebrow,
+  .quote-credit,
+  .emblem-caption {
+    color: CanvasText;
+  }
+}
+
+/* ---------- More contrast requested ---------- */
+@media (prefers-contrast: more) {
+  .progress-track {
+    background: #ffffff1f;
+    outline: 1px solid #e9bb7180;
+    outline-offset: 2px;
+  }
+  .loading-note,
+  .sound-hint,
+  footer,
+  .studio,
+  .emblem-caption {
+    color: #c3cad4;
+  }
+  .quote p {
+    color: #f1eee7;
+  }
+  .quote-credit,
+  .eyebrow {
+    color: #b3bcc7;
+  }
+  .icon-button {
+    border-color: #ffffff3d;
+    color: #d5dbe3;
+  }
+  #sound-hint {
+    color: #ffdcaa;
+  }
+}
+
+/* ---------- Reduced transparency / solid surfaces ---------- */
+@media (prefers-reduced-transparency: reduce) {
+  .icon-button {
+    background: #0e1622;
+  }
 }
